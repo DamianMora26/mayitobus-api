@@ -394,7 +394,7 @@ function TicketSale({ user }: { user: AuthUser }) {
               {scheduledTrips.map((trip) => <option key={trip.id} value={trip.id}>{trip.origin} - {trip.destination} / {dateTime(trip.departureDateTime)}</option>)}
             </select>
             <input placeholder="Pasajero" value={passengerName} onChange={(event) => setPassengerName(event.target.value)} />
-            <input placeholder="Asiento" type="number" min={1} value={seatNumber} onChange={(event) => setSeatNumber(event.target.value)} />
+            <input placeholder="Asiento" inputMode="numeric" value={seatNumber} onChange={(event) => setSeatNumber(event.target.value)} />
             <select value={passengerType} onChange={(event) => setPassengerType(event.target.value as PassengerType)}>
               {passengerTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
             </select>
@@ -425,18 +425,34 @@ function TicketSale({ user }: { user: AuthUser }) {
           </table>
         </DataPanel>
       </div>
-      <DataPanel title="Asientos">
+      <DataPanel title="Mapa de asientos">
         <div className="seat-summary">
           <span>{seats.data?.soldSeats ?? 0} vendidos</span>
           <span>{seats.data?.availableSeats ?? 0} disponibles</span>
         </div>
-        <div className="seat-map">
-          {(seats.data?.seats ?? []).map((seat) => (
-            <button key={seat.seatNumber} className={`seat ${seat.status === 'SOLD' ? 'sold' : ''}`} title={seat.passengerName ?? 'Disponible'} onClick={() => seat.status === 'AVAILABLE' && setSeatNumber(String(seat.seatNumber))}>
-              <Armchair size={15} />
-              {seat.seatNumber}
-            </button>
-          ))}
+        <div className="bus-seat-layout">
+          <div className="bus-front-marker">
+            <BusFront size={19} />
+            <span>Frente</span>
+          </div>
+          <div className="seat-map">
+            {(seats.data?.seats ?? []).map((seat) => (
+              <button
+                key={seat.seatNumber}
+                className={`seat ${seatSlotClass(seat.seatNumber)} ${seat.status === 'SOLD' ? 'sold' : ''} ${seatNumber === String(seat.seatNumber) ? 'selected' : ''}`}
+                title={seat.passengerName ?? 'Disponible'}
+                onClick={() => seat.status === 'AVAILABLE' && setSeatNumber(String(seat.seatNumber))}
+              >
+                <Armchair size={15} />
+                <span>{seat.seatNumber}</span>
+              </button>
+            ))}
+          </div>
+          <div className="seat-legend">
+            <span><i className="legend-dot available" />Disponible</span>
+            <span><i className="legend-dot selected" />Seleccionado</span>
+            <span><i className="legend-dot sold" />Vendido</span>
+          </div>
         </div>
       </DataPanel>
       {printTicket && <PrintableTicket ticket={printTicket} onClose={() => setPrintTicket(null)} />}
@@ -641,6 +657,16 @@ function durationLabel(minutes: number) {
   }
 
   return `${hours.toFixed(1)} h`
+}
+
+function seatSlotClass(seatNumber: number) {
+  const position = (seatNumber - 1) % 4
+
+  if (position === 0) return 'left-window'
+  if (position === 1) return 'left-aisle'
+  if (position === 2) return 'right-aisle'
+
+  return 'right-window'
 }
 
 function dateTime(value: string) {

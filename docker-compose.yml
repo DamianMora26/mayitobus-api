@@ -26,6 +26,7 @@ services:
       DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       JWT_SECRET: ${JWT_SECRET:-change-this-docker-development-secret}
       JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES:-120}
+      APP_TIME_ZONE: ${APP_TIME_ZONE:-America/Hermosillo}
     ports:
       - "8080:8080"
     depends_on:

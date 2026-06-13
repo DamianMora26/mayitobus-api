@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -22,11 +21,13 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
+    private final TimeService timeService;
 
-    public TicketService(TicketRepository ticketRepository, TripRepository tripRepository, UserRepository userRepository) {
+    public TicketService(TicketRepository ticketRepository, TripRepository tripRepository, UserRepository userRepository, TimeService timeService) {
         this.ticketRepository = ticketRepository;
         this.tripRepository = tripRepository;
         this.userRepository = userRepository;
+        this.timeService = timeService;
     }
 
     @Transactional
@@ -38,7 +39,7 @@ public class TicketService {
             throw new IllegalArgumentException("El viaje no esta disponible para venta");
         }
 
-        if (!trip.getDepartureDateTime().isAfter(LocalDateTime.now())) {
+        if (!trip.getDepartureDateTime().isAfter(timeService.now())) {
             throw new IllegalArgumentException("No se pueden vender boletos para un viaje que ya salio");
         }
 
@@ -66,7 +67,7 @@ public class TicketService {
         ticket.setDiscountPercentage(getDiscountPercentage(ticket.getPassengerType()));
         ticket.setPrice(calculateFinalPrice(trip.getRoute().getBasePrice(), ticket.getDiscountPercentage()));
         ticket.setStatus("SOLD");
-        ticket.setSoldAt(LocalDateTime.now());
+        ticket.setSoldAt(timeService.now());
 
         return new TicketResponse(ticketRepository.save(ticket));
     }
@@ -124,12 +125,12 @@ public class TicketService {
             throw new IllegalArgumentException("El boleto no esta vendido");
         }
 
-        if (!ticket.getTrip().getDepartureDateTime().isAfter(LocalDateTime.now())) {
+        if (!ticket.getTrip().getDepartureDateTime().isAfter(timeService.now())) {
             throw new IllegalArgumentException("No se puede cancelar un boleto de un viaje que ya salio");
         }
 
         ticket.setStatus("CANCELLED");
-        ticket.setCancelledAt(LocalDateTime.now());
+        ticket.setCancelledAt(timeService.now());
 
         return new TicketResponse(ticketRepository.save(ticket));
     }

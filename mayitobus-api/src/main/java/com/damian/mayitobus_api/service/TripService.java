@@ -11,7 +11,6 @@ import com.damian.mayitobus_api.repository.TripRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -20,11 +19,13 @@ public class TripService {
     private final TripRepository tripRepository;
     private final RouteRepository routeRepository;
     private final BusRepository busRepository;
+    private final TimeService timeService;
 
-    public TripService(TripRepository tripRepository, RouteRepository routeRepository, BusRepository busRepository) {
+    public TripService(TripRepository tripRepository, RouteRepository routeRepository, BusRepository busRepository, TimeService timeService) {
         this.tripRepository = tripRepository;
         this.routeRepository = routeRepository;
         this.busRepository = busRepository;
+        this.timeService = timeService;
     }
 
     @Transactional
@@ -43,6 +44,10 @@ public class TripService {
             throw new IllegalArgumentException("El autobus no esta activo");
         }
 
+        if (!request.getDepartureDateTime().isAfter(timeService.now())) {
+            throw new IllegalArgumentException("debe ser una fecha futura");
+        }
+
         if (tripRepository.existsByBus_IdAndDepartureDateTime(bus.getId(), request.getDepartureDateTime())) {
             throw new IllegalArgumentException("El autobus ya tiene un viaje programado en esa fecha y hora");
         }
@@ -52,7 +57,7 @@ public class TripService {
         trip.setBus(bus);
         trip.setDepartureDateTime(request.getDepartureDateTime());
         trip.setStatus("SCHEDULED");
-        trip.setCreatedAt(LocalDateTime.now());
+        trip.setCreatedAt(timeService.now());
 
         return new TripResponse(tripRepository.save(trip));
     }
