@@ -186,6 +186,7 @@ function Dashboard() {
         <Metric icon={CircleDollarSign} label="Venta activa" value={money(sold.reduce((sum, ticket) => sum + Number(ticket.price), 0))} />
       </div>
       <DataPanel title="Proximos viajes">
+        <QueryError query={trips} />
         <table>
           <thead><tr><th>Ruta</th><th>Autobus</th><th>Salida</th><th>Estatus</th></tr></thead>
           <tbody>
@@ -201,6 +202,7 @@ function Dashboard() {
         </table>
       </DataPanel>
       <DataPanel title="Ultimos boletos">
+        <QueryError query={tickets} />
         <table>
           <thead><tr><th>Pasajero</th><th>Ruta</th><th>Categoria</th><th>Asiento</th><th>Total</th><th>Estatus</th></tr></thead>
           <tbody>
@@ -237,10 +239,12 @@ function BusesPage() {
         <PageTitle title="Autobuses" subtitle="Vehiculos registrados y activos" />
         <RefreshButton onClick={() => queryClient.invalidateQueries({ queryKey: ['buses'] })} />
         <DataPanel title="Flota">
+          <QueryError query={buses} />
           <table>
             <thead><tr><th>Numero</th><th>Placas</th><th>Modelo</th><th>Capacidad</th><th>Estatus</th><th></th></tr></thead>
             <tbody>{(buses.data ?? []).map((bus) => <tr key={bus.id}><td>{bus.busNumber}</td><td>{bus.licensePlate}</td><td>{bus.model}</td><td>{bus.capacity}</td><td><Badge>{bus.status}</Badge></td><td><button className="ghost small-button" onClick={() => updateStatus.mutate({ id: bus.id, action: bus.status === 'ACTIVE' ? 'deactivate' : 'activate' })}>{bus.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody>
           </table>
+          <MutationError mutation={updateStatus} />
         </DataPanel>
       </div>
       <DataPanel title="Nuevo autobus">
@@ -272,10 +276,12 @@ function RoutesPage() {
       <div>
         <PageTitle title="Rutas" subtitle="Origen, destino, precio y duracion" />
         <DataPanel title="Rutas activas">
+          <QueryError query={routes} />
           <table>
             <thead><tr><th>Origen</th><th>Destino</th><th>Precio</th><th>Duracion</th><th>Estatus</th><th></th></tr></thead>
             <tbody>{(routes.data ?? []).map((route) => <tr key={route.id}><td>{route.origin}</td><td>{route.destination}</td><td>{money(route.basePrice)}</td><td>{durationLabel(route.estimatedDurationMinutes)}</td><td><Badge>{route.active ? 'ACTIVE' : 'INACTIVE'}</Badge></td><td><button className="ghost small-button" onClick={() => updateStatus.mutate({ id: route.id, action: route.active ? 'deactivate' : 'activate' })}>{route.active ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody>
           </table>
+          <MutationError mutation={updateStatus} />
         </DataPanel>
       </div>
       <DataPanel title="Nueva ruta">
@@ -310,10 +316,12 @@ function TripsPage() {
       <div>
         <PageTitle title="Viajes" subtitle="Primero crea una ruta y un autobus; luego programa la salida aqui." />
         <DataPanel title="Agenda">
+          <QueryError query={trips} />
           <table>
             <thead><tr><th>Ruta</th><th>Autobus</th><th>Salida</th><th>Llegada</th><th>Estatus</th><th></th></tr></thead>
             <tbody>{(trips.data ?? []).map((trip) => <tr key={trip.id}><td>{trip.origin} - {trip.destination}</td><td>{trip.busNumber}</td><td>{dateTime(trip.departureDateTime)}</td><td>{dateTime(trip.estimatedArrivalDateTime)}</td><td><Badge>{trip.status}</Badge></td><td>{trip.status === 'SCHEDULED' && <button className="ghost small-button" onClick={() => cancel.mutate(trip.id)}>Cancelar</button>}</td></tr>)}</tbody>
           </table>
+          <MutationError mutation={cancel} />
         </DataPanel>
       </div>
       <DataPanel title="Nuevo viaje">
@@ -419,13 +427,16 @@ function TicketSale({ user }: { user: AuthUser }) {
           <MutationError mutation={create} />
         </section>
         <DataPanel title="Boletos recientes">
+          <QueryError query={tickets} />
           <table>
             <thead><tr><th>Pasajero</th><th>Categoria</th><th>Ruta</th><th>Asiento</th><th>Precio</th><th>Estatus</th><th></th></tr></thead>
             <tbody>{(tickets.data ?? []).slice(0, 10).map((ticket) => <tr key={ticket.id}><td>{ticket.passengerName}</td><td>{passengerTypeLabel(ticket.passengerType)}</td><td>{ticket.origin} - {ticket.destination}</td><td>{ticket.seatNumber}</td><td>{money(ticket.price)}</td><td><Badge>{ticket.status}</Badge></td><td className="row-actions"><button className="ghost small-button" onClick={() => setPrintTicket(ticket)}>Imprimir</button>{ticket.status === 'SOLD' && <button className="ghost small-button" onClick={() => cancel.mutate(ticket.id)}>Cancelar</button>}</td></tr>)}</tbody>
           </table>
+          <MutationError mutation={cancel} />
         </DataPanel>
       </div>
       <DataPanel title="Mapa de asientos">
+        <QueryError query={seats} />
         <div className="seat-summary">
           <span>{seats.data?.soldSeats ?? 0} vendidos</span>
           <span>{seats.data?.availableSeats ?? 0} disponibles</span>
@@ -526,6 +537,7 @@ function ReportsPage() {
         <Metric icon={BarChart3} label="Neto" value={money(report.data?.netRevenue ?? 0)} />
       </div>
       <DataPanel title="Desglose diario">
+        <QueryError query={report} />
         <table>
           <thead><tr><th>Fecha</th><th>Vendidos</th><th>Cancelados</th><th>Bruto</th><th>Neto</th></tr></thead>
           <tbody>{(report.data?.dailyReports ?? []).map((row) => <tr key={row.date}><td>{row.date}</td><td>{row.soldTickets}</td><td>{row.cancelledTickets}</td><td>{money(row.grossRevenue)}</td><td>{money(row.netRevenue)}</td></tr>)}</tbody>
@@ -556,6 +568,7 @@ function UsersPage() {
       <div>
         <PageTitle title="Usuarios" subtitle="Accesos para gerencia y venta en ventanilla" />
         <DataPanel title="Equipo">
+          <QueryError query={users} />
           <table>
             <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estatus</th><th></th></tr></thead>
             <tbody>
@@ -570,6 +583,7 @@ function UsersPage() {
               ))}
             </tbody>
           </table>
+          <MutationError mutation={updateStatus} />
         </DataPanel>
       </div>
       <DataPanel title="Nuevo usuario">
@@ -613,7 +627,7 @@ function PageTitle({ title, subtitle }: { title: string; subtitle: string }) {
 }
 
 function DataPanel({ title, children }: { title: string; children: ReactNode }) {
-  return <section className="panel"><h2>{title}</h2>{children}</section>
+  return <section className="panel"><h2>{title}</h2><div className="panel-body">{children}</div></section>
 }
 
 function Metric({ icon: Icon, label, value }: { icon: typeof LayoutDashboard; label: string; value: string | number }) {
@@ -634,6 +648,11 @@ function RefreshButton({ onClick }: { onClick: () => void }) {
 
 function MutationError({ mutation }: { mutation: { error: unknown } }) {
   const error = mutation.error ? getApiError(mutation.error) : null
+  return error ? <div className="alert">{error.message}</div> : null
+}
+
+function QueryError({ query }: { query: { error: unknown } }) {
+  const error = query.error ? getApiError(query.error) : null
   return error ? <div className="alert">{error.message}</div> : null
 }
 

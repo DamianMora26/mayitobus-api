@@ -56,10 +56,30 @@ export function getApiError(error: unknown): ApiError {
   if (axios.isAxiosError(error)) {
     const data = error.response?.data as { message?: string; fields?: Record<string, string> } | undefined
     const fieldMessage = data?.fields ? Object.values(data.fields)[0] : undefined
+    const status = error.response?.status
+
+    if (!error.response) {
+      return {
+        message: 'No se pudo conectar con la API. Revisa que Docker este ejecutandose y que la red sea correcta.',
+      }
+    }
+
+    if (status === 401) {
+      return { message: 'Sesion vencida o credenciales invalidas. Vuelve a iniciar sesion.', status }
+    }
+
+    if (status === 403) {
+      return { message: 'Tu usuario no tiene permiso para realizar esta accion.', status }
+    }
+
+    if (status && status >= 500) {
+      return { message: 'La API tuvo un problema interno. Revisa la consola del backend.', status }
+    }
 
     return {
-      message: fieldMessage ?? data?.message ?? 'No se pudo completar la operacion',
+      message: fieldMessage ?? data?.message ?? 'No se pudo completar la operacion. Revisa los datos capturados.',
       fields: data?.fields,
+      status,
     }
   }
 
