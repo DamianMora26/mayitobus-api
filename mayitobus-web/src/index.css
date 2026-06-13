@@ -1,0 +1,738 @@
+@import "tailwindcss";
+
+:root {
+  color: #182227;
+  background: #f3f5f7;
+  font-family: Inter, ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(360px, 0.75fr) minmax(420px, 1fr);
+  align-items: stretch;
+  background:
+    linear-gradient(90deg, rgba(10, 20, 31, 0.88) 0%, rgba(10, 20, 31, 0.7) 38%, rgba(10, 20, 31, 0.22) 100%),
+    url("/brand/mayitos-bus.png") center / cover;
+}
+
+.login-visual {
+  min-height: 100vh;
+  padding: 46px;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.login-visual img {
+  width: 112px;
+  height: 112px;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 3px solid #ffc928;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.38);
+}
+
+.login-visual strong {
+  font-size: 38px;
+  line-height: 1;
+}
+
+.login-visual span {
+  max-width: 410px;
+  color: #dfe8ef;
+  font-size: 17px;
+}
+
+.login-panel {
+  align-self: center;
+  justify-self: center;
+  width: min(430px, calc(100% - 42px));
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 14px;
+  padding: 30px;
+  box-shadow: 0 28px 80px rgba(9, 18, 28, 0.32);
+}
+
+.login-logo {
+  width: 84px;
+  height: 84px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 18px;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+.login-panel h1 {
+  font-size: 32px;
+  line-height: 1.08;
+}
+
+.login-panel p,
+.page-title p,
+.topbar span,
+.metric span,
+.sidebar-brand span {
+  color: #66727a;
+}
+
+.form {
+  display: grid;
+  gap: 12px;
+}
+
+.stack {
+  margin-top: 24px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: #354148;
+  font-size: 14px;
+}
+
+input,
+select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d6dce0;
+  border-radius: 9px;
+  background: #fff;
+  color: #172127;
+  padding: 0 13px;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: #1f6cb5;
+  box-shadow: 0 0 0 4px rgba(31, 108, 181, 0.13);
+}
+
+.primary-action,
+.ghost {
+  min-height: 44px;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+}
+
+.primary-action {
+  background: #c7192f;
+  color: white;
+  padding: 0 16px;
+  font-weight: 800;
+  box-shadow: 0 10px 22px rgba(199, 25, 47, 0.22);
+}
+
+.primary-action:hover {
+  background: #a91428;
+}
+
+.primary-action:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.ghost {
+  background: #edf3f7;
+  color: #1c2b35;
+  padding: 0 12px;
+}
+
+.small-button {
+  min-height: 32px;
+  font-size: 13px;
+}
+
+.row-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.alert {
+  border: 1px solid #efb5af;
+  background: #fff1ef;
+  color: #92382f;
+  border-radius: 9px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 276px 1fr;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: #0b2330;
+  color: #f8fbfd;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-right: 6px solid #1e6fb6;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+}
+
+.sidebar-brand img {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid #ffc928;
+  background: #fff;
+}
+
+.sidebar-brand strong {
+  display: block;
+  line-height: 1.05;
+}
+
+.sidebar-brand span {
+  display: block;
+  margin-top: 5px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: 7px;
+}
+
+.sidebar nav button,
+.logout {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #d7e4eb;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  text-align: left;
+}
+
+.sidebar nav button.active,
+.sidebar nav button:hover,
+.logout:hover {
+  background: rgba(255, 255, 255, 0.11);
+  color: #fff;
+}
+
+.sidebar nav button.active {
+  box-shadow: inset 4px 0 0 #ffc928;
+}
+
+.logout {
+  margin-top: auto;
+}
+
+.workspace {
+  min-width: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(243, 245, 247, 0.95)),
+    repeating-linear-gradient(135deg, rgba(30, 111, 182, 0.04) 0 1px, transparent 1px 14px);
+}
+
+.route-ribbon {
+  height: 8px;
+  background: linear-gradient(90deg, #c7192f 0 28%, #ffc928 28% 42%, #1e6fb6 42% 100%);
+}
+
+.topbar {
+  height: 68px;
+  background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid #dce4e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 28px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(14px);
+}
+
+.topbar strong,
+.topbar span {
+  display: block;
+}
+
+.status-pill,
+.badge {
+  border-radius: 999px;
+  background: #e9f2fb;
+  color: #1e6fb6;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.page {
+  padding: 28px;
+  display: grid;
+  gap: 18px;
+}
+
+.page-title h1 {
+  font-size: 32px;
+  line-height: 1.08;
+  margin-bottom: 6px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  color: #c7192f;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hero-panel {
+  min-height: 220px;
+  border-radius: 14px;
+  padding: 28px;
+  display: flex;
+  align-items: flex-end;
+  color: #fff;
+  background:
+    linear-gradient(90deg, rgba(9, 24, 34, 0.86), rgba(9, 24, 34, 0.38)),
+    url("/brand/mayitos-bus.png") center / cover;
+  box-shadow: 0 18px 42px rgba(12, 31, 43, 0.2);
+}
+
+.hero-panel h2 {
+  max-width: 620px;
+  margin-top: 8px;
+  font-size: 31px;
+  line-height: 1.08;
+}
+
+.hero-panel p {
+  max-width: 590px;
+  margin-top: 10px;
+  color: #e5edf1;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metric,
+.panel,
+.ticket-counter {
+  background: #fff;
+  border: 1px solid #dce4e8;
+  border-radius: 14px;
+  box-shadow: 0 14px 34px rgba(18, 39, 52, 0.08);
+}
+
+.metric {
+  min-height: 118px;
+  display: grid;
+  gap: 8px;
+  align-content: center;
+  padding: 18px;
+  border-top: 4px solid #1e6fb6;
+}
+
+.metric:nth-child(2) {
+  border-top-color: #ffc928;
+}
+
+.metric:nth-child(4) {
+  border-top-color: #c7192f;
+}
+
+.metric svg {
+  color: #1e6fb6;
+}
+
+.metric strong {
+  font-size: 27px;
+}
+
+.panel,
+.ticket-counter {
+  padding: 18px;
+  min-width: 0;
+}
+
+.panel h2,
+.ticket-counter h2 {
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+
+.two-column {
+  grid-template-columns: minmax(0, 1fr) 340px;
+  align-items: start;
+}
+
+.ticket-layout {
+  grid-template-columns: minmax(0, 1fr) 380px;
+  align-items: start;
+}
+
+.ticket-counter {
+  display: grid;
+  gap: 16px;
+  border-top: 5px solid #c7192f;
+}
+
+.ticket-counter-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: start;
+}
+
+.ticket-counter-header strong {
+  font-size: 30px;
+  color: #c7192f;
+}
+
+.sale-form {
+  grid-template-columns: 1.4fr 1fr 120px 190px auto;
+}
+
+.fare-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fare-card {
+  min-height: 88px;
+  border: 1px solid #dce4e8;
+  border-radius: 12px;
+  background: #f8fafb;
+  color: #26333b;
+  display: grid;
+  gap: 5px;
+  justify-items: start;
+  padding: 12px;
+  text-align: left;
+}
+
+.fare-card svg {
+  color: #1e6fb6;
+}
+
+.fare-card span {
+  font-size: 13px;
+}
+
+.fare-card strong {
+  color: #c7192f;
+  font-size: 18px;
+}
+
+.fare-card.active {
+  border-color: #ffc928;
+  background: #fff8dc;
+  box-shadow: inset 0 0 0 2px #ffc928;
+}
+
+.fare-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.fare-summary span,
+.fare-summary strong {
+  border-radius: 999px;
+  background: #f2f5f7;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.fare-summary strong {
+  background: #ffe7e9;
+  color: #c7192f;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th,
+td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #edf1f3;
+  text-align: left;
+  vertical-align: middle;
+}
+
+th {
+  color: #66727a;
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.seat-summary,
+.date-filter {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.seat-summary span {
+  background: #f4f7f8;
+  border: 1px solid #dce4e8;
+  border-radius: 9px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.seat-map {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.seat {
+  min-height: 44px;
+  border: 1px solid #cfdbe3;
+  background: #f8fbfd;
+  color: #1e6fb6;
+  border-radius: 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.seat:hover {
+  border-color: #1e6fb6;
+}
+
+.seat.sold {
+  background: #fff1ef;
+  border-color: #efb5af;
+  color: #92382f;
+}
+
+.refresh {
+  justify-self: start;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(7, 17, 24, 0.58);
+}
+
+.ticket-modal {
+  width: min(460px, 100%);
+  display: grid;
+  gap: 14px;
+}
+
+.ticket-paper {
+  background:
+    linear-gradient(90deg, transparent 0 calc(100% - 10px), #1e6fb6 calc(100% - 10px)),
+    #fff;
+  border-radius: 16px;
+  border: 1px dashed #b8c5cc;
+  padding: 22px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+}
+
+.ticket-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 3px solid #ffc928;
+}
+
+.ticket-brand img {
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.ticket-brand strong,
+.ticket-brand span {
+  display: block;
+}
+
+.ticket-brand strong {
+  font-size: 20px;
+}
+
+.ticket-brand span {
+  color: #66727a;
+  font-size: 13px;
+}
+
+.ticket-route {
+  min-height: 78px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #c7192f;
+  font-size: 19px;
+  font-weight: 900;
+}
+
+.ticket-route strong {
+  color: #1e6fb6;
+}
+
+.ticket-details {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 10px 14px;
+  padding: 16px 0;
+  border-top: 1px solid #edf1f3;
+  border-bottom: 1px solid #edf1f3;
+}
+
+.ticket-details span {
+  color: #66727a;
+  font-size: 13px;
+}
+
+.ticket-details strong {
+  color: #182227;
+}
+
+.ticket-total {
+  margin-top: 16px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+}
+
+.ticket-total span {
+  color: #66727a;
+}
+
+.ticket-total strong {
+  color: #c7192f;
+  font-size: 30px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-ticket,
+  #printable-ticket * {
+    visibility: visible;
+  }
+
+  #printable-ticket {
+    position: fixed;
+    inset: 20px auto auto 20px;
+    width: 420px;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 1100px) {
+  .sale-form,
+  .fare-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .login-page,
+  .app-shell,
+  .two-column,
+  .ticket-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .login-visual {
+    min-height: 300px;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+  }
+
+  .sale-form,
+  .fare-grid,
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+}

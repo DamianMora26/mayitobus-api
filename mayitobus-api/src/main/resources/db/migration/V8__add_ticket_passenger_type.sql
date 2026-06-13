@@ -1,0 +1,3 @@
+ALTER TABLE tickets
+    ADD COLUMN passenger_type VARCHAR(30) NOT NULL DEFAULT 'NORMAL',
+    ADD COLUMN discount_percentage NUMERIC(5, 2) NOT NULL DEFAULT 0.00;

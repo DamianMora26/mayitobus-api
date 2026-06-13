@@ -1,0 +1,101 @@
+# Cambia email/password por un usuario real existente en tu base de datos.
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+"email": "admin@example.com",
+"password": "password123"
+}
+
+> {% client.global.set("auth_token", response.body.token); %}
+
+###
+
+POST http://localhost:8080/api/buses
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+"busNumber": "BUS-001",
+"licensePlate": "ABC-123",
+"model": "Mercedes-Benz 2020",
+"capacity": 42
+}
+
+###
+
+GET http://localhost:8080/api/buses
+Authorization: Bearer {{auth_token}}
+
+###
+
+POST http://localhost:8080/api/routes
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+"origin": "Hermosillo",
+"destination": "Guaymas",
+"basePrice": 280.00,
+"estimatedDurationMinutes": 120
+}
+
+###
+
+GET http://localhost:8080/api/routes
+Authorization: Bearer {{auth_token}}
+
+###
+
+POST http://localhost:8080/api/trips
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+"routeId": 1,
+"busId": 1,
+"departureDateTime": "2026-07-01T08:30:00"
+}
+
+###
+
+GET http://localhost:8080/api/trips
+Authorization: Bearer {{auth_token}}
+
+###
+
+POST http://localhost:8080/api/tickets
+Content-Type: application/json
+Authorization: Bearer {{auth_token}}
+
+{
+"tripId": 1,
+"sellerUserId": 1,
+"passengerName": "Juan Perez",
+"seatNumber": 1
+}
+
+###
+
+GET http://localhost:8080/api/tickets
+Authorization: Bearer {{auth_token}}
+
+###
+
+GET http://localhost:8080/api/trips/1/tickets
+Authorization: Bearer {{auth_token}}
+
+###
+
+GET http://localhost:8080/api/trips/1/seats
+Authorization: Bearer {{auth_token}}
+
+###
+
+PATCH http://localhost:8080/api/tickets/1/cancel
+Authorization: Bearer {{auth_token}}
+
+###
+
+GET http://localhost:8080/api/reports/sales?from=2026-06-12&to=2026-06-12
+Authorization: Bearer {{auth_token}}
