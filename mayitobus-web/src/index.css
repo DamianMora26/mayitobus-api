@@ -33,15 +33,16 @@ button {
   min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   padding: clamp(20px, 5vw, 72px);
   background:
-    linear-gradient(90deg, rgba(7, 15, 24, 0.78) 0%, rgba(7, 15, 24, 0.5) 48%, rgba(7, 15, 24, 0.28) 100%),
+    linear-gradient(90deg, rgba(7, 15, 24, 0.62) 0%, rgba(7, 15, 24, 0.42) 48%, rgba(7, 15, 24, 0.2) 100%),
     url("/brand/mayitos-bus.png") center / cover;
 }
 
 .login-panel {
   width: min(430px, 100%);
+  margin-left: min(42vw, 760px);
   background: rgba(255, 255, 255, 0.97);
   border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 18px;
@@ -715,6 +716,7 @@ th {
   }
 
   .login-panel {
+    margin-left: 0;
     padding: 26px;
   }
 
