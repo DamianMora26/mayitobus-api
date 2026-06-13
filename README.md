@@ -162,6 +162,42 @@ URL local:
 http://127.0.0.1:5173
 ```
 
+## Docker
+
+El proyecto incluye una configuracion Docker para levantar PostgreSQL, la API y el frontend con un solo comando.
+
+Crear un archivo `.env` a partir del ejemplo:
+
+```bash
+copy .env.example .env
+```
+
+Levantar los servicios:
+
+```bash
+docker compose up --build
+```
+
+URLs:
+
+```text
+Frontend: http://localhost:5173
+Backend:  http://localhost:8080
+Postgres: localhost:5433
+```
+
+Detener los servicios:
+
+```bash
+docker compose down
+```
+
+Detener y borrar los datos de PostgreSQL del contenedor:
+
+```bash
+docker compose down -v
+```
+
 ## Endpoints principales
 
 ```http
