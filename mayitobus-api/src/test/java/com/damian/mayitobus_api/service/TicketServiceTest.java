@@ -71,6 +71,30 @@ class TicketServiceTest {
     }
 
     @Test
+    void createTicketAppliesStudentDiscount() {
+        LocalDateTime now = LocalDateTime.of(2026, 6, 13, 10, 0);
+        Trip trip = buildTrip(1L, new BigDecimal("100.00"), 42, now.plusHours(2));
+        User seller = buildSeller(1L);
+        CreateTicketRequest request = buildTicketRequest(1L, 1L, "Estudiante prueba", 8, "ESTUDIANTE");
+
+        when(timeService.now()).thenReturn(now);
+        when(tripRepository.findById(1L)).thenReturn(Optional.of(trip));
+        when(ticketRepository.existsByTrip_IdAndSeatNumberAndStatus(1L, 8, "SOLD")).thenReturn(false);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(seller));
+        when(ticketRepository.save(any(Ticket.class))).thenAnswer(invocation -> {
+            Ticket ticket = invocation.getArgument(0);
+            ReflectionTestUtils.setField(ticket, "id", 11L);
+            return ticket;
+        });
+
+        TicketResponse response = ticketService.createTicket(request);
+
+        assertThat(response.getPassengerType()).isEqualTo("ESTUDIANTE");
+        assertThat(response.getDiscountPercentage()).isEqualByComparingTo("35.00");
+        assertThat(response.getPrice()).isEqualByComparingTo("65.00");
+    }
+
+    @Test
     void createTicketRejectsSeatOutsideBusCapacity() {
         LocalDateTime now = LocalDateTime.of(2026, 6, 13, 10, 0);
         Trip trip = buildTrip(1L, new BigDecimal("70.00"), 20, now.plusHours(2));

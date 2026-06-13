@@ -25,12 +25,14 @@ import type { AuthUser, Bus, Route, SalesReport, Ticket as TicketType, Trip, Tri
 const queryClient = new QueryClient()
 
 type Page = 'dashboard' | 'tickets' | 'trips' | 'buses' | 'routes' | 'reports' | 'users'
-type PassengerType = 'NORMAL' | 'ADULTO_MAYOR' | 'NINO' | 'DISCAPACITADO'
+type PassengerType = 'NORMAL' | 'ADULTO_MAYOR' | 'NINO' | 'ESTUDIANTE' | 'DISCAPACITADO'
+type DurationUnit = 'MINUTES' | 'HOURS'
 
 const passengerTypes: Array<{ value: PassengerType; label: string; discount: number }> = [
   { value: 'NORMAL', label: 'Normal', discount: 0 },
   { value: 'ADULTO_MAYOR', label: 'Adulto mayor', discount: 50 },
   { value: 'NINO', label: 'Niño', discount: 25 },
+  { value: 'ESTUDIANTE', label: 'Estudiante', discount: 35 },
   { value: 'DISCAPACITADO', label: 'Persona discapacitada', discount: 50 },
 ]
 
@@ -264,8 +266,8 @@ function BusesPage() {
 function RoutesPage() {
   const queryClient = useQueryClient()
   const routes = useList<Route[]>('routes', '/api/routes')
-  const [form, setForm] = useState({ origin: '', destination: '', basePrice: '', estimatedDurationHours: '2' })
-  const create = useCreate('/api/routes', ['routes'], () => setForm({ origin: '', destination: '', basePrice: '', estimatedDurationHours: '2' }))
+  const [form, setForm] = useState({ origin: '', destination: '', basePrice: '', estimatedDurationValue: '40', estimatedDurationUnit: 'MINUTES' as DurationUnit })
+  const create = useCreate('/api/routes', ['routes'], () => setForm({ origin: '', destination: '', basePrice: '', estimatedDurationValue: '40', estimatedDurationUnit: 'MINUTES' }))
   const updateStatus = useMutation({
     mutationFn: async ({ id, action }: { id: number; action: 'activate' | 'deactivate' }) => (await api.patch(`/api/routes/${id}/${action}`)).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['routes'] }),
@@ -285,12 +287,21 @@ function RoutesPage() {
         </DataPanel>
       </div>
       <DataPanel title="Nueva ruta">
-        <form className="form stack" onSubmit={(event) => { event.preventDefault(); create.mutate({ origin: form.origin, destination: form.destination, basePrice: Number(form.basePrice), estimatedDurationMinutes: Math.round(Number(form.estimatedDurationHours) * 60) }) }}>
+        <form className="form stack" onSubmit={(event) => { event.preventDefault(); create.mutate({ origin: form.origin, destination: form.destination, basePrice: Number(form.basePrice), estimatedDurationMinutes: durationToMinutes(form.estimatedDurationValue, form.estimatedDurationUnit) }) }}>
           <label>Origen<input placeholder="Navojoa" value={form.origin} onChange={(e) => setForm({ ...form, origin: e.target.value })} /></label>
           <label>Destino<input placeholder="Huatabampo" value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} /></label>
           <label>Precio base<input inputMode="decimal" placeholder="70.00" value={form.basePrice} onChange={(e) => setForm({ ...form, basePrice: e.target.value })} /></label>
-          <label>Duracion estimada<input inputMode="decimal" placeholder="2" value={form.estimatedDurationHours} onChange={(e) => setForm({ ...form, estimatedDurationHours: e.target.value })} /></label>
-          <p className="form-hint">Captura horas. Por ejemplo: 2 equivale a 120 minutos.</p>
+          <label>
+            Duracion estimada
+            <div className="duration-field">
+              <input inputMode="decimal" placeholder="40" value={form.estimatedDurationValue} onChange={(e) => setForm({ ...form, estimatedDurationValue: e.target.value })} />
+              <select value={form.estimatedDurationUnit} onChange={(e) => setForm({ ...form, estimatedDurationUnit: e.target.value as DurationUnit })}>
+                <option value="MINUTES">minutos</option>
+                <option value="HOURS">horas</option>
+              </select>
+            </div>
+          </label>
+          <p className="form-hint">Selecciona la unidad: por ejemplo 40 minutos o 2 horas.</p>
           <SubmitButton loading={create.isPending}>Crear ruta</SubmitButton>
           <MutationError mutation={create} />
         </form>
@@ -669,13 +680,28 @@ function passengerTypeLabel(type: string) {
 }
 
 function durationLabel(minutes: number) {
-  const hours = minutes / 60
+  if (minutes < 60) {
+    return `${minutes} min`
+  }
 
-  if (Number.isInteger(hours)) {
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+
+  if (remainingMinutes === 0) {
     return `${hours} h`
   }
 
-  return `${hours.toFixed(1)} h`
+  return `${hours} h ${remainingMinutes} min`
+}
+
+function durationToMinutes(value: string, unit: DurationUnit) {
+  const numericValue = Number(value)
+
+  if (unit === 'HOURS') {
+    return Math.round(numericValue * 60)
+  }
+
+  return Math.round(numericValue)
 }
 
 function seatSlotClass(seatNumber: number) {

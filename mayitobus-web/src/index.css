@@ -101,6 +101,12 @@ p {
   gap: 12px;
 }
 
+.duration-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px;
+  gap: 8px;
+}
+
 .stack {
   margin-top: 24px;
 }
@@ -850,6 +856,10 @@ th {
   .sale-form,
   .fare-grid,
   .metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .duration-field {
     grid-template-columns: 1fr;
   }
 }

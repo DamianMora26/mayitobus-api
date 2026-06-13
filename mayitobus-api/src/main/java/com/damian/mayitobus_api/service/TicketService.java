@@ -76,7 +76,7 @@ public class TicketService {
         String normalized = passengerType.trim().toUpperCase();
 
         return switch (normalized) {
-            case "NORMAL", "ADULTO_MAYOR", "NINO", "DISCAPACITADO" -> normalized;
+            case "NORMAL", "ADULTO_MAYOR", "NINO", "ESTUDIANTE", "DISCAPACITADO" -> normalized;
             default -> throw new IllegalArgumentException("Tipo de pasajero no valido");
         };
     }
@@ -84,6 +84,7 @@ public class TicketService {
     private BigDecimal getDiscountPercentage(String passengerType) {
         return switch (passengerType) {
             case "NINO" -> new BigDecimal("25.00");
+            case "ESTUDIANTE" -> new BigDecimal("35.00");
             case "ADULTO_MAYOR", "DISCAPACITADO" -> new BigDecimal("50.00");
             default -> BigDecimal.ZERO;
         };
