@@ -184,6 +184,24 @@ select:focus {
   font-size: 14px;
 }
 
+.info-message,
+.form-hint {
+  border-radius: 9px;
+  color: #315169;
+  font-size: 14px;
+}
+
+.info-message {
+  border: 1px solid #bcd8ed;
+  background: #eef7ff;
+  padding: 12px 14px;
+}
+
+.form-hint {
+  background: #f3f7fa;
+  padding: 10px 12px;
+}
+
 .app-shell {
   min-height: 100vh;
   display: grid;

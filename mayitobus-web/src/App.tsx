@@ -224,8 +224,8 @@ function Dashboard() {
 function BusesPage() {
   const queryClient = useQueryClient()
   const buses = useList<Bus[]>('buses', '/api/buses')
-  const [form, setForm] = useState({ busNumber: '', licensePlate: '', model: '', capacity: 42 })
-  const create = useCreate('/api/buses', ['buses'], () => setForm({ busNumber: '', licensePlate: '', model: '', capacity: 42 }))
+  const [form, setForm] = useState({ busNumber: '', licensePlate: '', model: '', capacity: '42' })
+  const create = useCreate('/api/buses', ['buses'], () => setForm({ busNumber: '', licensePlate: '', model: '', capacity: '42' }))
   const updateStatus = useMutation({
     mutationFn: async ({ id, action }: { id: number; action: 'activate' | 'deactivate' }) => (await api.patch(`/api/buses/${id}/${action}`)).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['buses'] }),
@@ -244,11 +244,11 @@ function BusesPage() {
         </DataPanel>
       </div>
       <DataPanel title="Nuevo autobus">
-        <form className="form stack" onSubmit={(event) => { event.preventDefault(); create.mutate(form) }}>
-          <input placeholder="Numero" value={form.busNumber} onChange={(e) => setForm({ ...form, busNumber: e.target.value })} />
-          <input placeholder="Placas" value={form.licensePlate} onChange={(e) => setForm({ ...form, licensePlate: e.target.value })} />
-          <input placeholder="Modelo" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} />
-          <input type="number" min={1} value={form.capacity} onChange={(e) => setForm({ ...form, capacity: Number(e.target.value) })} />
+        <form className="form stack" onSubmit={(event) => { event.preventDefault(); create.mutate({ ...form, capacity: Number(form.capacity) }) }}>
+          <label>Numero<input placeholder="BUS-001" value={form.busNumber} onChange={(e) => setForm({ ...form, busNumber: e.target.value })} /></label>
+          <label>Placas<input placeholder="ABC-123" value={form.licensePlate} onChange={(e) => setForm({ ...form, licensePlate: e.target.value })} /></label>
+          <label>Modelo<input placeholder="Volvo A2" value={form.model} onChange={(e) => setForm({ ...form, model: e.target.value })} /></label>
+          <label>Capacidad<input inputMode="numeric" placeholder="42" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} /></label>
           <SubmitButton loading={create.isPending}>Crear autobus</SubmitButton>
           <MutationError mutation={create} />
         </form>
@@ -260,8 +260,8 @@ function BusesPage() {
 function RoutesPage() {
   const queryClient = useQueryClient()
   const routes = useList<Route[]>('routes', '/api/routes')
-  const [form, setForm] = useState({ origin: '', destination: '', basePrice: 0, estimatedDurationMinutes: 120 })
-  const create = useCreate('/api/routes', ['routes'], () => setForm({ origin: '', destination: '', basePrice: 0, estimatedDurationMinutes: 120 }))
+  const [form, setForm] = useState({ origin: '', destination: '', basePrice: '', estimatedDurationHours: '2' })
+  const create = useCreate('/api/routes', ['routes'], () => setForm({ origin: '', destination: '', basePrice: '', estimatedDurationHours: '2' }))
   const updateStatus = useMutation({
     mutationFn: async ({ id, action }: { id: number; action: 'activate' | 'deactivate' }) => (await api.patch(`/api/routes/${id}/${action}`)).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['routes'] }),
@@ -274,16 +274,17 @@ function RoutesPage() {
         <DataPanel title="Rutas activas">
           <table>
             <thead><tr><th>Origen</th><th>Destino</th><th>Precio</th><th>Duracion</th><th>Estatus</th><th></th></tr></thead>
-            <tbody>{(routes.data ?? []).map((route) => <tr key={route.id}><td>{route.origin}</td><td>{route.destination}</td><td>{money(route.basePrice)}</td><td>{route.estimatedDurationMinutes} min</td><td><Badge>{route.active ? 'ACTIVE' : 'INACTIVE'}</Badge></td><td><button className="ghost small-button" onClick={() => updateStatus.mutate({ id: route.id, action: route.active ? 'deactivate' : 'activate' })}>{route.active ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody>
+            <tbody>{(routes.data ?? []).map((route) => <tr key={route.id}><td>{route.origin}</td><td>{route.destination}</td><td>{money(route.basePrice)}</td><td>{durationLabel(route.estimatedDurationMinutes)}</td><td><Badge>{route.active ? 'ACTIVE' : 'INACTIVE'}</Badge></td><td><button className="ghost small-button" onClick={() => updateStatus.mutate({ id: route.id, action: route.active ? 'deactivate' : 'activate' })}>{route.active ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody>
           </table>
         </DataPanel>
       </div>
       <DataPanel title="Nueva ruta">
-        <form className="form stack" onSubmit={(event) => { event.preventDefault(); create.mutate(form) }}>
-          <input placeholder="Origen" value={form.origin} onChange={(e) => setForm({ ...form, origin: e.target.value })} />
-          <input placeholder="Destino" value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} />
-          <input type="number" step="0.01" min="0.01" placeholder="Precio base" value={form.basePrice} onChange={(e) => setForm({ ...form, basePrice: Number(e.target.value) })} />
-          <input type="number" min={1} value={form.estimatedDurationMinutes} onChange={(e) => setForm({ ...form, estimatedDurationMinutes: Number(e.target.value) })} />
+        <form className="form stack" onSubmit={(event) => { event.preventDefault(); create.mutate({ origin: form.origin, destination: form.destination, basePrice: Number(form.basePrice), estimatedDurationMinutes: Math.round(Number(form.estimatedDurationHours) * 60) }) }}>
+          <label>Origen<input placeholder="Navojoa" value={form.origin} onChange={(e) => setForm({ ...form, origin: e.target.value })} /></label>
+          <label>Destino<input placeholder="Huatabampo" value={form.destination} onChange={(e) => setForm({ ...form, destination: e.target.value })} /></label>
+          <label>Precio base<input inputMode="decimal" placeholder="70.00" value={form.basePrice} onChange={(e) => setForm({ ...form, basePrice: e.target.value })} /></label>
+          <label>Duracion estimada<input inputMode="decimal" placeholder="2" value={form.estimatedDurationHours} onChange={(e) => setForm({ ...form, estimatedDurationHours: e.target.value })} /></label>
+          <p className="form-hint">Captura horas. Por ejemplo: 2 equivale a 120 minutos.</p>
           <SubmitButton loading={create.isPending}>Crear ruta</SubmitButton>
           <MutationError mutation={create} />
         </form>
@@ -307,7 +308,7 @@ function TripsPage() {
   return (
     <section className="page two-column">
       <div>
-        <PageTitle title="Viajes" subtitle="Salidas programadas por ruta y autobus" />
+        <PageTitle title="Viajes" subtitle="Primero crea una ruta y un autobus; luego programa la salida aqui." />
         <DataPanel title="Agenda">
           <table>
             <thead><tr><th>Ruta</th><th>Autobus</th><th>Salida</th><th>Llegada</th><th>Estatus</th><th></th></tr></thead>
@@ -318,11 +319,11 @@ function TripsPage() {
       <DataPanel title="Nuevo viaje">
         <form className="form stack" onSubmit={(event) => { event.preventDefault(); create.mutate({ routeId: Number(form.routeId), busId: Number(form.busId), departureDateTime: form.departureDateTime }) }}>
           <select value={form.routeId} onChange={(e) => setForm({ ...form, routeId: e.target.value })}>
-            <option value="">Ruta</option>
+            <option value="">{(routes.data ?? []).length ? 'Ruta' : 'Primero registra una ruta'}</option>
             {(routes.data ?? []).map((route) => <option key={route.id} value={route.id}>{route.origin} - {route.destination}</option>)}
           </select>
           <select value={form.busId} onChange={(e) => setForm({ ...form, busId: e.target.value })}>
-            <option value="">Autobus</option>
+            <option value="">{(buses.data ?? []).length ? 'Autobus' : 'Primero registra un autobus'}</option>
             {(buses.data ?? []).map((bus) => <option key={bus.id} value={bus.id}>{bus.busNumber} ({bus.capacity})</option>)}
           </select>
           <input type="datetime-local" value={form.departureDateTime} onChange={(e) => setForm({ ...form, departureDateTime: e.target.value })} />
@@ -344,6 +345,7 @@ function TicketSale({ user }: { user: AuthUser }) {
   const [passengerType, setPassengerType] = useState<PassengerType>('NORMAL')
   const [printTicket, setPrintTicket] = useState<TicketType | null>(null)
   const selectedTripId = Number(tripId)
+  const scheduledTrips = (trips.data ?? []).filter((trip) => trip.status === 'SCHEDULED')
   const selectedTrip = (trips.data ?? []).find((trip) => trip.id === selectedTripId)
   const selectedPassengerType = passengerTypes.find((type) => type.value === passengerType) ?? passengerTypes[0]
   const finalPrice = selectedTrip ? selectedTrip.basePrice * (1 - selectedPassengerType.discount / 100) : 0
@@ -375,6 +377,9 @@ function TicketSale({ user }: { user: AuthUser }) {
     <section className="page ticket-layout">
       <div>
         <PageTitle title="Venta de boletos" subtitle="Selecciona viaje, categoria de pasajero y asiento" />
+        {!scheduledTrips.length && (
+          <div className="info-message">Para vender un boleto primero programa un viaje en la seccion Viajes. La venta usa viajes, no rutas sueltas.</div>
+        )}
         <section className="ticket-counter">
           <div className="ticket-counter-header">
             <div>
@@ -385,8 +390,8 @@ function TicketSale({ user }: { user: AuthUser }) {
           </div>
           <form className="form sale-form" onSubmit={(event) => { event.preventDefault(); create.mutate() }}>
             <select value={tripId} onChange={(event) => setTripId(event.target.value)}>
-              <option value="">Viaje</option>
-              {(trips.data ?? []).map((trip) => <option key={trip.id} value={trip.id}>{trip.origin} - {trip.destination} / {dateTime(trip.departureDateTime)}</option>)}
+              <option value="">{scheduledTrips.length ? 'Viaje programado' : 'Primero programa un viaje'}</option>
+              {scheduledTrips.map((trip) => <option key={trip.id} value={trip.id}>{trip.origin} - {trip.destination} / {dateTime(trip.departureDateTime)}</option>)}
             </select>
             <input placeholder="Pasajero" value={passengerName} onChange={(event) => setPassengerName(event.target.value)} />
             <input placeholder="Asiento" type="number" min={1} value={seatNumber} onChange={(event) => setSeatNumber(event.target.value)} />
@@ -626,6 +631,16 @@ function roleLabel(role: string) {
 
 function passengerTypeLabel(type: string) {
   return passengerTypes.find((passengerType) => passengerType.value === type)?.label ?? type
+}
+
+function durationLabel(minutes: number) {
+  const hours = minutes / 60
+
+  if (Number.isInteger(hours)) {
+    return `${hours} h`
+  }
+
+  return `${hours.toFixed(1)} h`
 }
 
 function dateTime(value: string) {
