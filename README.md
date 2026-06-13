@@ -2,6 +2,24 @@
 
 Sistema web para la operacion de una terminal de Autobuses Mayitos. El proyecto incluye una API REST con Spring Boot y un panel administrativo en React para gestionar rutas, autobuses, viajes, venta de boletos, asientos, usuarios y reportes.
 
+## Capturas
+
+### Login
+
+![Login](docs/screenshots/login.png)
+
+### Dashboard
+
+![Dashboard](docs/screenshots/dashboard.png)
+
+### Venta de boletos y boleto imprimible
+
+![Venta de boletos](docs/screenshots/ticket-sale.png)
+
+### Reportes
+
+![Reportes](docs/screenshots/reports.png)
+
 ## Stack
 
 - Java 21
