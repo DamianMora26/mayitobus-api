@@ -36,7 +36,7 @@ services:
     build:
       context: ./mayitobus-web
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:8080}
+        VITE_API_URL: ${VITE_API_URL:-}
     container_name: mayitobus-web
     ports:
       - "5173:80"

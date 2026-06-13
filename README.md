@@ -186,6 +186,14 @@ Backend:  http://localhost:8080
 Postgres: localhost:5433
 ```
 
+Para abrir el frontend desde otro dispositivo en la misma red, usa la IP local de tu computadora:
+
+```text
+http://TU_IP_LOCAL:5173
+```
+
+En Docker, el frontend usa el proxy de Nginx para enviar las llamadas `/api` al backend, por eso tambien funciona desde celular sin cambiar `localhost` en el navegador.
+
 Detener los servicios:
 
 ```bash
