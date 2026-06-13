@@ -83,22 +83,21 @@ function LoginPage({ onLogin }: { onLogin: (user: AuthUser) => void }) {
 
   return (
     <main className="login-page">
-      <div className="login-visual">
-        <img src="/brand/mayitos-logo.jpg" alt="Mayitos" />
-        <strong>Autobuses Mayitos</strong>
-        <span>Sistema interno de venta y control de salidas</span>
-      </div>
       <section className="login-panel">
-        <img className="login-logo" src="/brand/mayitos-logo.jpg" alt="Mayitos" />
-        <h1>Acceso operativo</h1>
-        <p>Ingresa con tu usuario de terminal para vender, programar y consultar reportes.</p>
+        <div className="login-brand">
+          <img className="login-logo" src="/brand/mayitos-logo.jpg" alt="Mayitos" />
+          <div>
+            <span>Acceso operativo</span>
+            <h1>Autobuses Mayitos</h1>
+          </div>
+        </div>
         <form onSubmit={submit} className="form stack">
           <label>
             Correo
             <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="email" />
           </label>
           <label>
-            Password
+            Contraseña
             <input value={password} onChange={(event) => setPassword(event.target.value)} type="password" autoComplete="current-password" />
           </label>
           {error && <div className="alert">{error}</div>}

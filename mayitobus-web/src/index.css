@@ -31,61 +31,41 @@ button {
 
 .login-page {
   min-height: 100vh;
-  display: grid;
-  grid-template-columns: minmax(360px, 0.75fr) minmax(420px, 1fr);
-  align-items: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: clamp(20px, 5vw, 72px);
   background:
-    linear-gradient(90deg, rgba(10, 20, 31, 0.88) 0%, rgba(10, 20, 31, 0.7) 38%, rgba(10, 20, 31, 0.22) 100%),
+    linear-gradient(90deg, rgba(7, 15, 24, 0.78) 0%, rgba(7, 15, 24, 0.5) 48%, rgba(7, 15, 24, 0.28) 100%),
     url("/brand/mayitos-bus.png") center / cover;
 }
 
-.login-visual {
-  min-height: 100vh;
-  padding: 46px;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  gap: 12px;
-}
-
-.login-visual img {
-  width: 112px;
-  height: 112px;
-  object-fit: cover;
-  border-radius: 16px;
-  border: 3px solid #ffc928;
-  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.38);
-}
-
-.login-visual strong {
-  font-size: 38px;
-  line-height: 1;
-}
-
-.login-visual span {
-  max-width: 410px;
-  color: #dfe8ef;
-  font-size: 17px;
-}
-
 .login-panel {
-  align-self: center;
-  justify-self: center;
-  width: min(430px, calc(100% - 42px));
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.72);
-  border-radius: 14px;
-  padding: 30px;
-  box-shadow: 0 28px 80px rgba(9, 18, 28, 0.32);
+  width: min(430px, 100%);
+  background: rgba(255, 255, 255, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 18px;
+  padding: 34px;
+  box-shadow: 0 30px 90px rgba(4, 13, 22, 0.38);
+  backdrop-filter: blur(16px);
+}
+
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid #e5ebef;
 }
 
 .login-logo {
-  width: 84px;
-  height: 84px;
+  width: 76px;
+  height: 76px;
+  flex: 0 0 auto;
   object-fit: cover;
-  border-radius: 14px;
-  margin-bottom: 18px;
+  border-radius: 16px;
+  border: 2px solid #ffc928;
+  box-shadow: 0 12px 28px rgba(199, 25, 47, 0.16);
 }
 
 h1,
@@ -95,8 +75,16 @@ p {
 }
 
 .login-panel h1 {
-  font-size: 32px;
+  font-size: 30px;
   line-height: 1.08;
+}
+
+.login-brand span {
+  display: block;
+  color: #c7192f;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .login-panel p,
@@ -721,8 +709,17 @@ th {
     grid-template-columns: 1fr;
   }
 
-  .login-visual {
-    min-height: 300px;
+  .login-page {
+    justify-content: center;
+    background-position: 35% center;
+  }
+
+  .login-panel {
+    padding: 26px;
+  }
+
+  .login-brand {
+    align-items: flex-start;
   }
 
   .sidebar {
