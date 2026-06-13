@@ -30,7 +30,7 @@ type PassengerType = 'NORMAL' | 'ADULTO_MAYOR' | 'NINO' | 'DISCAPACITADO'
 const passengerTypes: Array<{ value: PassengerType; label: string; discount: number }> = [
   { value: 'NORMAL', label: 'Normal', discount: 0 },
   { value: 'ADULTO_MAYOR', label: 'Adulto mayor', discount: 50 },
-  { value: 'NINO', label: 'Nino', discount: 25 },
+  { value: 'NINO', label: 'Niño', discount: 25 },
   { value: 'DISCAPACITADO', label: 'Persona discapacitada', discount: 50 },
 ]
 

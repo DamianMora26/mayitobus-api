@@ -31,7 +31,7 @@ Sistema web para la operacion de una terminal de Autobuses Mayitos. El proyecto 
 - Venta y cancelacion de boletos.
 - Categorias de boleto con descuento:
   - Normal: 0%
-  - Nino: 25%
+  - Niño: 25%
   - Adulto mayor: 50%
   - Persona discapacitada: 50%
 - Control de asientos por viaje.
