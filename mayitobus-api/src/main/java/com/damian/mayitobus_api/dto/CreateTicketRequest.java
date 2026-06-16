@@ -7,21 +7,21 @@ import jakarta.validation.constraints.Size;
 
 public class CreateTicketRequest {
 
-    @NotNull
+    @NotNull(message = "Selecciona un viaje programado antes de vender el boleto")
     private Long tripId;
 
-    @NotNull
+    @NotNull(message = "No se encontro el usuario vendedor. Vuelve a iniciar sesion")
     private Long sellerUserId;
 
-    @NotBlank
-    @Size(max = 120)
+    @NotBlank(message = "Escribe el nombre del pasajero")
+    @Size(max = 120, message = "El nombre del pasajero no debe pasar de 120 caracteres")
     private String passengerName;
 
-    @NotNull
-    @Min(1)
+    @NotNull(message = "Selecciona un asiento disponible antes de vender el boleto")
+    @Min(value = 1, message = "Selecciona un asiento valido antes de vender el boleto")
     private Integer seatNumber;
 
-    @NotBlank
+    @NotBlank(message = "Selecciona la categoria del pasajero")
     private String passengerType;
 
     public Long getTripId() {

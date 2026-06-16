@@ -400,6 +400,7 @@ function TicketSale({ user }: { user: AuthUser }) {
   const [passengerType, setPassengerType] = useState<PassengerType>('NORMAL')
   const [printTicket, setPrintTicket] = useState<TicketType | null>(null)
   const [ticketView, setTicketView] = useState<'today' | 'history'>('today')
+  const [saleError, setSaleError] = useState('')
   const selectedTripId = Number(tripId)
   const scheduledTrips = (trips.data ?? []).filter(isTripSellable)
   const selectedTrip = (trips.data ?? []).find((trip) => trip.id === selectedTripId)
@@ -419,6 +420,7 @@ function TicketSale({ user }: { user: AuthUser }) {
       setPassengerName('')
       setSeatNumber('')
       setPassengerType('NORMAL')
+      setSaleError('')
       setPrintTicket(ticket)
       queryClient.invalidateQueries({ queryKey: ['tickets'] })
       queryClient.invalidateQueries({ queryKey: ['seats', selectedTripId] })
@@ -431,6 +433,24 @@ function TicketSale({ user }: { user: AuthUser }) {
       queryClient.invalidateQueries({ queryKey: ['seats', selectedTripId] })
     },
   })
+  const handleTicketSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const validationMessage = getTicketSaleValidationMessage({
+      tripId,
+      passengerName,
+      seatNumber,
+      seats: seats.data,
+    })
+
+    if (validationMessage) {
+      setSaleError(validationMessage)
+      return
+    }
+
+    setSaleError('')
+    create.mutate()
+  }
 
   return (
     <section className="page ticket-layout">
@@ -447,13 +467,13 @@ function TicketSale({ user }: { user: AuthUser }) {
             </div>
             <strong>{money(finalPrice)}</strong>
           </div>
-          <form className="form sale-form" onSubmit={(event) => { event.preventDefault(); create.mutate() }}>
-            <select value={tripId} onChange={(event) => setTripId(event.target.value)}>
+          <form className="form sale-form" onSubmit={handleTicketSubmit}>
+            <select value={tripId} onChange={(event) => { setTripId(event.target.value); setSeatNumber(''); setSaleError('') }}>
               <option value="">{scheduledTrips.length ? 'Viaje programado' : 'Primero programa un viaje'}</option>
               {scheduledTrips.map((trip) => <option key={trip.id} value={trip.id}>{trip.origin} - {trip.destination} / {dateTime(trip.departureDateTime)}</option>)}
             </select>
-            <input placeholder="Pasajero" value={passengerName} onChange={(event) => setPassengerName(event.target.value)} />
-            <input placeholder="Asiento" inputMode="numeric" value={seatNumber} onChange={(event) => setSeatNumber(event.target.value)} />
+            <input placeholder="Pasajero" value={passengerName} onChange={(event) => { setPassengerName(event.target.value); setSaleError('') }} />
+            <input placeholder="Asiento" inputMode="numeric" value={seatNumber} onChange={(event) => { setSeatNumber(event.target.value); setSaleError('') }} />
             <select value={passengerType} onChange={(event) => setPassengerType(event.target.value as PassengerType)}>
               {passengerTypes.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
             </select>
@@ -475,6 +495,7 @@ function TicketSale({ user }: { user: AuthUser }) {
               <strong>Total {money(finalPrice)}</strong>
             </div>
           )}
+          {saleError && <div className="alert">{saleError}</div>}
           <MutationError mutation={create} />
         </section>
         <DataPanel title="Boletos">
@@ -514,7 +535,12 @@ function TicketSale({ user }: { user: AuthUser }) {
                 key={seat.seatNumber}
                 className={`seat ${seatSlotClass(seat.seatNumber)} ${seat.status === 'SOLD' ? 'sold' : ''} ${seatNumber === String(seat.seatNumber) ? 'selected' : ''}`}
                 title={seat.passengerName ?? 'Disponible'}
-                onClick={() => seat.status === 'AVAILABLE' && setSeatNumber(String(seat.seatNumber))}
+                onClick={() => {
+                  if (seat.status === 'AVAILABLE') {
+                    setSeatNumber(String(seat.seatNumber))
+                    setSaleError('')
+                  }
+                }}
               >
                 <Armchair size={15} />
                 <span>{seat.seatNumber}</span>
@@ -996,6 +1022,40 @@ function durationToMinutes(value: string, unit: DurationUnit) {
 
 function isTripSellable(trip: Trip) {
   return trip.status === 'SCHEDULED' && new Date(trip.departureDateTime).getTime() > Date.now()
+}
+
+function getTicketSaleValidationMessage({ tripId, passengerName, seatNumber, seats }: { tripId: string; passengerName: string; seatNumber: string; seats?: TripSeats }) {
+  const trimmedSeatNumber = seatNumber.trim()
+
+  if (!tripId) {
+    return 'Selecciona un viaje programado antes de vender el boleto.'
+  }
+
+  if (!passengerName.trim()) {
+    return 'Escribe el nombre del pasajero antes de vender el boleto.'
+  }
+
+  if (!trimmedSeatNumber) {
+    return 'Selecciona un asiento disponible en el mapa o escribe el numero de asiento.'
+  }
+
+  const numericSeatNumber = Number(trimmedSeatNumber)
+
+  if (!Number.isInteger(numericSeatNumber) || numericSeatNumber < 1) {
+    return 'Escribe un numero de asiento valido o elige uno en el mapa.'
+  }
+
+  if (seats && numericSeatNumber > seats.capacity) {
+    return `El asiento ${numericSeatNumber} no esta disponible en este autobus. Elige del 1 al ${seats.capacity}.`
+  }
+
+  const selectedSeat = seats?.seats.find((seat) => seat.seatNumber === numericSeatNumber)
+
+  if (selectedSeat?.status === 'SOLD') {
+    return 'Ese asiento ya esta vendido. Elige un asiento disponible.'
+  }
+
+  return ''
 }
 
 type TripWindow = {

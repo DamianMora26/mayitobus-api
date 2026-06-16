@@ -20,7 +20,7 @@ public class RouteService {
 
     public RouteResponse createRoute(CreateRouteRequest request) {
         if (routeRepository.existsByOriginIgnoreCaseAndDestinationIgnoreCase(request.getOrigin(), request.getDestination())) {
-            throw new IllegalArgumentException("La ruta ya esta registrada");
+            throw new IllegalArgumentException("Ya existe una ruta con ese origen y destino");
         }
 
         Route route = new Route();
@@ -43,7 +43,7 @@ public class RouteService {
 
     public RouteResponse updateActive(Long routeId, Boolean active) {
         Route route = routeRepository.findById(routeId)
-                .orElseThrow(() -> new IllegalArgumentException("La ruta no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro esa ruta. Actualiza la lista e intenta de nuevo"));
 
         route.setActive(active);
 

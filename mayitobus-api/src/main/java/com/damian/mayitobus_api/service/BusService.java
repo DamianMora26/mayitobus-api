@@ -20,11 +20,11 @@ public class BusService {
 
     public BusResponse createBus(CreateBusRequest request) {
         if (busRepository.existsByBusNumber(request.getBusNumber())) {
-            throw new IllegalArgumentException("El número de autobús ya está registrado");
+            throw new IllegalArgumentException("Ya existe un autobus con ese numero. Usa otro numero de unidad");
         }
 
         if (busRepository.existsByLicensePlate(request.getLicensePlate())) {
-            throw new IllegalArgumentException("Las placas ya están registradas");
+            throw new IllegalArgumentException("Ya existe un autobus con esas placas");
         }
 
         Bus bus = new Bus();
@@ -47,7 +47,7 @@ public class BusService {
 
     public BusResponse updateStatus(Long busId, String status) {
         Bus bus = busRepository.findById(busId)
-                .orElseThrow(() -> new IllegalArgumentException("El autobus no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro ese autobus. Actualiza la lista e intenta de nuevo"));
 
         bus.setStatus(status);
 

@@ -6,23 +6,23 @@ import jakarta.validation.constraints.Size;
 
 public class CreateUserRequest {
 
-    @NotBlank
-    @Size(max = 120)
+    @NotBlank(message = "Escribe el nombre completo del usuario")
+    @Size(max = 120, message = "El nombre no debe pasar de 120 caracteres")
     private String fullName;
 
-    @NotBlank
-    @Email
-    @Size(max = 120)
+    @NotBlank(message = "Escribe el correo del usuario")
+    @Email(message = "Escribe un correo valido")
+    @Size(max = 120, message = "El correo no debe pasar de 120 caracteres")
     private String email;
 
-    @Size(max = 20)
+    @Size(max = 20, message = "El telefono no debe pasar de 20 caracteres")
     private String phone;
 
-    @NotBlank
-    @Size(min = 6, max = 100)
+    @NotBlank(message = "Escribe una contrasena para el usuario")
+    @Size(min = 6, max = 100, message = "La contrasena debe tener entre 6 y 100 caracteres")
     private String password;
 
-    @NotBlank
+    @NotBlank(message = "Selecciona el rol del usuario")
     private String roleName;
 
     public String getFullName() {

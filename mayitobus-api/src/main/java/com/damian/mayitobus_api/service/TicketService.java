@@ -33,10 +33,10 @@ public class TicketService {
     @Transactional
     public TicketResponse createTicket(CreateTicketRequest request) {
         Trip trip = tripRepository.findById(request.getTripId())
-                .orElseThrow(() -> new IllegalArgumentException("El viaje no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("Selecciona un viaje programado para vender el boleto"));
 
         if (!"SCHEDULED".equalsIgnoreCase(trip.getStatus())) {
-            throw new IllegalArgumentException("El viaje no esta disponible para venta");
+            throw new IllegalArgumentException("Este viaje no esta disponible para vender boletos");
         }
 
         if (!trip.getDepartureDateTime().isAfter(timeService.now())) {
@@ -44,18 +44,18 @@ public class TicketService {
         }
 
         if (request.getSeatNumber() > trip.getBus().getCapacity()) {
-            throw new IllegalArgumentException("El asiento excede la capacidad del autobus");
+            throw new IllegalArgumentException("Ese asiento no existe en este autobus. Elige un asiento del mapa");
         }
 
         if (ticketRepository.existsByTrip_IdAndSeatNumberAndStatus(trip.getId(), request.getSeatNumber(), "SOLD")) {
-            throw new IllegalArgumentException("El asiento ya esta vendido para este viaje");
+            throw new IllegalArgumentException("Ese asiento ya esta vendido. Elige un asiento disponible");
         }
 
         User seller = userRepository.findById(request.getSellerUserId())
-                .orElseThrow(() -> new IllegalArgumentException("El vendedor no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro el usuario vendedor. Vuelve a iniciar sesion"));
 
         if (!Boolean.TRUE.equals(seller.getActive())) {
-            throw new IllegalArgumentException("El vendedor no esta activo");
+            throw new IllegalArgumentException("El usuario vendedor esta desactivado. Pide a un administrador que lo active");
         }
 
         Ticket ticket = new Ticket();
@@ -77,7 +77,7 @@ public class TicketService {
 
         return switch (normalized) {
             case "NORMAL", "ADULTO_MAYOR", "NINO", "ESTUDIANTE", "DISCAPACITADO" -> normalized;
-            default -> throw new IllegalArgumentException("Tipo de pasajero no valido");
+            default -> throw new IllegalArgumentException("Selecciona una categoria de pasajero valida");
         };
     }
 
@@ -108,7 +108,7 @@ public class TicketService {
     @Transactional(readOnly = true)
     public List<TicketResponse> getTicketsByTrip(Long tripId) {
         if (!tripRepository.existsById(tripId)) {
-            throw new IllegalArgumentException("El viaje no existe");
+            throw new IllegalArgumentException("No se encontro ese viaje. Actualiza la lista e intenta de nuevo");
         }
 
         return ticketRepository.findByTrip_IdOrderBySeatNumberAsc(tripId)
@@ -120,10 +120,10 @@ public class TicketService {
     @Transactional
     public TicketResponse cancelTicket(Long ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new IllegalArgumentException("El boleto no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro ese boleto. Actualiza la lista e intenta de nuevo"));
 
         if (!"SOLD".equalsIgnoreCase(ticket.getStatus())) {
-            throw new IllegalArgumentException("El boleto no esta vendido");
+            throw new IllegalArgumentException("Solo se pueden cancelar boletos vendidos");
         }
 
         if (!ticket.getTrip().getDepartureDateTime().isAfter(timeService.now())) {

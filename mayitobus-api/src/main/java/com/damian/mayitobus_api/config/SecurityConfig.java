@@ -47,12 +47,12 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, exception) -> {
                             response.setStatus(401);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\",\"message\":\"Token requerido o invalido\"}");
+                            response.getWriter().write("{\"status\":401,\"error\":\"Sesion requerida\",\"message\":\"Inicia sesion para continuar\"}");
                         })
                         .accessDeniedHandler((request, response, exception) -> {
                             response.setStatus(403);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                            response.getWriter().write("{\"status\":403,\"error\":\"Forbidden\",\"message\":\"No tienes permisos para realizar esta accion\"}");
+                            response.getWriter().write("{\"status\":403,\"error\":\"Permiso denegado\",\"message\":\"Tu usuario no tiene permiso para hacer esta accion\"}");
                         })
                 )
                 .authorizeHttpRequests(auth -> auth

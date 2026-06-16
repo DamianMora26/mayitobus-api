@@ -24,14 +24,14 @@ public class AuthService {
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Credenciales invalidas"));
+                .orElseThrow(() -> new IllegalArgumentException("Correo o contrasena incorrectos"));
 
         if (!Boolean.TRUE.equals(user.getActive())) {
-            throw new IllegalArgumentException("El usuario no esta activo");
+            throw new IllegalArgumentException("Este usuario esta desactivado. Pide a un administrador que lo active");
         }
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new IllegalArgumentException("Credenciales invalidas");
+            throw new IllegalArgumentException("Correo o contrasena incorrectos");
         }
 
         String token = jwtService.generateToken(user);

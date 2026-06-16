@@ -81,7 +81,7 @@ class TripServiceTest {
 
         assertThatThrownBy(() -> tripService.createTrip(request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("debe ser una fecha futura");
+                .hasMessage("Selecciona una fecha y hora de salida futura");
     }
 
     @Test
@@ -101,7 +101,7 @@ class TripServiceTest {
 
         assertThatThrownBy(() -> tripService.createTrip(request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El autobus ya tiene un viaje programado que se cruza con ese horario");
+                .hasMessage("Ese autobus ya tiene un viaje que se cruza con ese horario. Elige otro autobus u otra hora");
     }
 
     @Test

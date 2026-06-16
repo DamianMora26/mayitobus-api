@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
         return Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.CONFLICT.value(),
-                "error", "Conflict",
+                "error", "No se pudo completar la accion",
                 "message", exception.getMessage()
         );
     }
@@ -36,8 +36,8 @@ public class GlobalExceptionHandler {
         return Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.BAD_REQUEST.value(),
-                "error", "Bad Request",
-                "message", "La solicitud tiene campos invalidos",
+                "error", "Revisa la informacion capturada",
+                "message", "Hay datos pendientes o con formato incorrecto",
                 "fields", fieldErrors
         );
     }
@@ -48,8 +48,8 @@ public class GlobalExceptionHandler {
         return Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.BAD_REQUEST.value(),
-                "error", "Bad Request",
-                "message", "Falta el parametro requerido: " + exception.getParameterName()
+                "error", "Revisa la informacion capturada",
+                "message", "Falta un dato necesario para completar la accion"
         );
     }
 
@@ -59,8 +59,8 @@ public class GlobalExceptionHandler {
         return Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.BAD_REQUEST.value(),
-                "error", "Bad Request",
-                "message", "El parametro tiene un formato invalido: " + exception.getName()
+                "error", "Revisa la informacion capturada",
+                "message", "Uno de los datos tiene un formato incorrecto"
         );
     }
 
@@ -70,8 +70,8 @@ public class GlobalExceptionHandler {
         return Map.of(
                 "timestamp", LocalDateTime.now(),
                 "status", HttpStatus.BAD_REQUEST.value(),
-                "error", "Bad Request",
-                "message", "El cuerpo de la solicitud no es valido"
+                "error", "Revisa la informacion capturada",
+                "message", "No se pudo leer la informacion enviada. Revisa los campos e intenta de nuevo"
         );
     }
 }

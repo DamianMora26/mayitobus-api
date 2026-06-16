@@ -11,21 +11,21 @@ import java.math.BigDecimal;
 
 public class CreateRouteRequest {
 
-    @NotBlank
-    @Size(max = 80)
+    @NotBlank(message = "Escribe el origen de la ruta")
+    @Size(max = 80, message = "El origen no debe pasar de 80 caracteres")
     private String origin;
 
-    @NotBlank
-    @Size(max = 80)
+    @NotBlank(message = "Escribe el destino de la ruta")
+    @Size(max = 80, message = "El destino no debe pasar de 80 caracteres")
     private String destination;
 
-    @NotNull
-    @DecimalMin(value = "0.01")
-    @Digits(integer = 8, fraction = 2)
+    @NotNull(message = "Escribe el precio base de la ruta")
+    @DecimalMin(value = "0.01", message = "El precio base debe ser mayor a $0.00")
+    @Digits(integer = 8, fraction = 2, message = "El precio base debe tener maximo 2 decimales")
     private BigDecimal basePrice;
 
-    @NotNull
-    @Min(1)
+    @NotNull(message = "Escribe la duracion estimada de la ruta")
+    @Min(value = 1, message = "La duracion debe ser al menos 1 minuto")
     private Integer estimatedDurationMinutes;
 
     public String getOrigin() {

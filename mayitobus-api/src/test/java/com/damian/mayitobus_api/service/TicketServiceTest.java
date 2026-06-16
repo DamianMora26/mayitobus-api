@@ -105,7 +105,7 @@ class TicketServiceTest {
 
         assertThatThrownBy(() -> ticketService.createTicket(request))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("El asiento excede la capacidad del autobus");
+                .hasMessage("Ese asiento no existe en este autobus. Elige un asiento del mapa");
     }
 
     private CreateTicketRequest buildTicketRequest(Long tripId, Long sellerUserId, String passengerName,

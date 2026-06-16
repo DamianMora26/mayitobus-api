@@ -60,28 +60,28 @@ export function getApiError(error: unknown): ApiError {
 
     if (!error.response) {
       return {
-        message: 'No se pudo conectar con la API. Revisa que Docker este ejecutandose y que la red sea correcta.',
+        message: 'No se pudo conectar con el sistema. Revisa tu conexion e intenta de nuevo.',
       }
     }
 
     if (status === 401) {
-      return { message: 'Sesion vencida o credenciales invalidas. Vuelve a iniciar sesion.', status }
+      return { message: 'Tu sesion vencio o tus datos no son correctos. Vuelve a iniciar sesion.', status }
     }
 
     if (status === 403) {
-      return { message: 'Tu usuario no tiene permiso para realizar esta accion.', status }
+      return { message: 'Tu usuario no tiene permiso para hacer esta accion.', status }
     }
 
     if (status && status >= 500) {
-      return { message: 'La API tuvo un problema interno. Revisa la consola del backend.', status }
+      return { message: 'El sistema tuvo un problema al procesar la accion. Intenta de nuevo.', status }
     }
 
     return {
-      message: fieldMessage ?? data?.message ?? 'No se pudo completar la operacion. Revisa los datos capturados.',
+      message: fieldMessage ?? data?.message ?? 'No se pudo completar la accion. Revisa los datos e intenta de nuevo.',
       fields: data?.fields,
       status,
     }
   }
 
-  return { message: 'Ocurrio un error inesperado' }
+  return { message: 'Ocurrio un problema inesperado. Intenta de nuevo.' }
 }

@@ -101,7 +101,7 @@ public class JwtService {
             return objectMapper.readValue(payloadBytes, new TypeReference<>() {
             });
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Token invalido");
+            throw new IllegalArgumentException("Tu sesion no es valida. Vuelve a iniciar sesion");
         }
     }
 
@@ -110,7 +110,7 @@ public class JwtService {
             byte[] json = objectMapper.writeValueAsBytes(value);
             return Base64.getUrlEncoder().withoutPadding().encodeToString(json);
         } catch (Exception exception) {
-            throw new IllegalStateException("No se pudo generar el token");
+            throw new IllegalStateException("No se pudo iniciar la sesion. Intenta de nuevo");
         }
     }
 
@@ -122,7 +122,7 @@ public class JwtService {
             return Base64.getUrlEncoder().withoutPadding()
                     .encodeToString(mac.doFinal(value.getBytes(StandardCharsets.UTF_8)));
         } catch (Exception exception) {
-            throw new IllegalStateException("No se pudo firmar el token");
+            throw new IllegalStateException("No se pudo iniciar la sesion. Intenta de nuevo");
         }
     }
 }

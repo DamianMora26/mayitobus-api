@@ -32,32 +32,32 @@ public class TripService {
     @Transactional
     public TripResponse createTrip(CreateTripRequest request) {
         Route route = routeRepository.findById(request.getRouteId())
-                .orElseThrow(() -> new IllegalArgumentException("La ruta no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("Selecciona una ruta registrada para programar el viaje"));
 
         if (!Boolean.TRUE.equals(route.getActive())) {
-            throw new IllegalArgumentException("La ruta no esta activa");
+            throw new IllegalArgumentException("Esta ruta esta desactivada. Activala o selecciona otra ruta");
         }
 
         Bus bus = busRepository.findById(request.getBusId())
-                .orElseThrow(() -> new IllegalArgumentException("El autobus no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("Selecciona un autobus registrado para programar el viaje"));
 
         if (!"ACTIVE".equalsIgnoreCase(bus.getStatus())) {
-            throw new IllegalArgumentException("El autobus no esta activo");
+            throw new IllegalArgumentException("Este autobus esta inactivo. Activalo o selecciona otro autobus");
         }
 
         if (!request.getDepartureDateTime().isAfter(timeService.now())) {
-            throw new IllegalArgumentException("debe ser una fecha futura");
+            throw new IllegalArgumentException("Selecciona una fecha y hora de salida futura");
         }
 
         LocalDateTime departureDateTime = request.getDepartureDateTime();
         LocalDateTime estimatedArrivalDateTime = departureDateTime.plusMinutes(route.getEstimatedDurationMinutes());
 
         if (tripRepository.existsByBus_IdAndDepartureDateTime(bus.getId(), departureDateTime)) {
-            throw new IllegalArgumentException("El autobus ya tiene un viaje programado en esa fecha y hora");
+            throw new IllegalArgumentException("Ese autobus ya tiene un viaje programado a esa misma hora");
         }
 
         if (hasOverlappingTrip(bus.getId(), departureDateTime, estimatedArrivalDateTime)) {
-            throw new IllegalArgumentException("El autobus ya tiene un viaje programado que se cruza con ese horario");
+            throw new IllegalArgumentException("Ese autobus ya tiene un viaje que se cruza con ese horario. Elige otro autobus u otra hora");
         }
 
         Trip trip = new Trip();
@@ -92,10 +92,10 @@ public class TripService {
     @Transactional
     public TripResponse cancelTrip(Long tripId) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new IllegalArgumentException("El viaje no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro ese viaje. Actualiza la agenda e intenta de nuevo"));
 
         if (!"SCHEDULED".equalsIgnoreCase(trip.getStatus())) {
-            throw new IllegalArgumentException("El viaje no esta programado");
+            throw new IllegalArgumentException("Solo se pueden cancelar viajes que siguen programados");
         }
 
         trip.setStatus("CANCELLED");

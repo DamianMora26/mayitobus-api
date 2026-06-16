@@ -6,13 +6,13 @@ import java.time.LocalDateTime;
 
 public class CreateTripRequest {
 
-    @NotNull
+    @NotNull(message = "Selecciona una ruta para programar el viaje")
     private Long routeId;
 
-    @NotNull
+    @NotNull(message = "Selecciona un autobus para programar el viaje")
     private Long busId;
 
-    @NotNull
+    @NotNull(message = "Selecciona la fecha y hora de salida")
     private LocalDateTime departureDateTime;
 
     public Long getRouteId() {

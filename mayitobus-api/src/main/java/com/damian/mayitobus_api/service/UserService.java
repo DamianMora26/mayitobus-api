@@ -1,14 +1,16 @@
 package com.damian.mayitobus_api.service;
 
 import com.damian.mayitobus_api.dto.CreateUserRequest;
+import com.damian.mayitobus_api.dto.UserResponse;
 import com.damian.mayitobus_api.entity.Role;
 import com.damian.mayitobus_api.entity.User;
 import com.damian.mayitobus_api.repository.RoleRepository;
 import com.damian.mayitobus_api.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import com.damian.mayitobus_api.dto.UserResponse;
+
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -29,11 +31,11 @@ public class UserService {
 
     public User createUser(CreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("El correo ya está registrado");
+            throw new IllegalArgumentException("Ya existe un usuario con ese correo");
         }
 
         Role role = roleRepository.findByName(request.getRoleName())
-                .orElseThrow(() -> new IllegalArgumentException("Rol no encontrado"));
+                .orElseThrow(() -> new IllegalArgumentException("Selecciona un rol valido para el usuario"));
 
         User user = new User();
         user.setFullName(request.getFullName());
@@ -47,7 +49,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public java.util.List<UserResponse> getUsers() {
+    public List<UserResponse> getUsers() {
         return userRepository.findAll()
                 .stream()
                 .map(UserResponse::new)
@@ -56,7 +58,7 @@ public class UserService {
 
     public UserResponse updateActive(Long userId, Boolean active) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("El usuario no existe"));
+                .orElseThrow(() -> new IllegalArgumentException("No se encontro ese usuario. Actualiza la lista e intenta de nuevo"));
 
         user.setActive(active);
 
