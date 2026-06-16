@@ -1,6 +1,22 @@
 # Autobuses Mayitos
 
-Sistema web para la operacion de una terminal de Autobuses Mayitos. El proyecto incluye una API REST con Spring Boot y un panel administrativo en React para gestionar rutas, autobuses, viajes, venta de boletos, asientos, usuarios y reportes.
+Sistema web full stack para la operacion de una terminal de Autobuses Mayitos. El proyecto incluye una API REST con Spring Boot y un panel administrativo en React para gestionar rutas, autobuses, viajes, venta de boletos, asientos, usuarios, reportes e impresion de comprobantes.
+
+## Demo
+
+Frontend publico:
+
+```text
+https://mayitobus-web.onrender.com
+```
+
+API publica:
+
+```text
+https://mayitobus-api.onrender.com
+```
+
+Nota: el plan gratuito de Render puede pausar la API por inactividad. La primera peticion despues de un tiempo sin uso puede tardar algunos segundos.
 
 ## Capturas
 
@@ -8,9 +24,9 @@ Sistema web para la operacion de una terminal de Autobuses Mayitos. El proyecto 
 
 ![Login](docs/screenshots/login.png)
 
-### Dashboard
+### Panel
 
-![Dashboard](docs/screenshots/dashboard.png)
+![Panel](docs/screenshots/dashboard.png)
 
 ### Venta de boletos y boleto imprimible
 
@@ -37,6 +53,8 @@ Sistema web para la operacion de una terminal de Autobuses Mayitos. El proyecto 
 - Axios
 - TanStack Query
 - Tailwind CSS
+- Docker
+- Render
 
 ## Funcionalidades
 
@@ -46,15 +64,19 @@ Sistema web para la operacion de una terminal de Autobuses Mayitos. El proyecto 
 - Gestion de autobuses con activacion y desactivacion.
 - Gestion de rutas con activacion y desactivacion.
 - Programacion y cancelacion de viajes.
+- Separacion de agenda operativa e historial para viajes.
 - Venta y cancelacion de boletos.
+- Separacion de boletos del dia e historial.
 - Categorias de boleto con descuento:
   - Normal: 0%
-  - Niño: 25%
+  - Nino: 25%
+  - Estudiante: 35%
   - Adulto mayor: 50%
   - Persona discapacitada: 50%
 - Control de asientos por viaje.
 - Boleto imprimible.
-- Reportes de ventas por rango de fechas.
+- Reportes de ventas por rango de fechas con visualizacion diaria.
+- Despliegue con frontend, API y PostgreSQL en Render.
 
 ## Modelo de dominio
 
@@ -65,7 +87,7 @@ El sistema separa conceptos que en una version anterior estaban mezclados:
 - Viaje: salida especifica en una fecha y hora, usando una ruta y un autobus.
 - Boleto: venta de un asiento para un viaje.
 
-Para conservar historial operativo, el sistema usa cambios de estado en lugar de eliminacion fisica: usuarios, autobuses y rutas se desactivan; los viajes y boletos se cancelan.
+Para conservar historial operativo, el sistema usa cambios de estado en lugar de eliminacion fisica: usuarios, autobuses y rutas se desactivan; los viajes y boletos se cancelan o se consultan desde historial.
 
 ## Credenciales demo
 
@@ -74,6 +96,8 @@ Correo: admin@example.com
 Password: password123
 Rol: TERMINAL_MANAGER
 ```
+
+Se recomienda usar estas credenciales solo para demostracion y cambiar los secretos en ambientes productivos.
 
 ## Configuracion local
 
@@ -99,6 +123,8 @@ DB_USERNAME=postgres
 DB_PASSWORD=tu_password_de_postgres
 JWT_SECRET=una_clave_larga_para_desarrollo_local
 JWT_EXPIRATION_MINUTES=120
+APP_TIME_ZONE=America/Hermosillo
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 ```
 
 Tambien puedes revisar el archivo de ejemplo:
@@ -206,6 +232,32 @@ Detener y borrar los datos de PostgreSQL del contenedor:
 docker compose down -v
 ```
 
+## Despliegue
+
+El proyecto esta preparado para desplegarse como tres servicios:
+
+- `mayitobus-web`: Static Site en Render.
+- `mayitobus-api`: Web Service Docker en Render.
+- `mayitobus-db`: PostgreSQL administrado en Render.
+
+Variables principales para la API:
+
+```text
+DB_URL=jdbc:postgresql://HOST:5432/mayitobus_db?sslmode=require
+DB_USERNAME=mayitobus_user
+DB_PASSWORD=tu_password
+JWT_SECRET=una_clave_larga_y_segura
+JWT_EXPIRATION_MINUTES=120
+APP_TIME_ZONE=America/Hermosillo
+CORS_ALLOWED_ORIGINS=https://mayitobus-web.onrender.com
+```
+
+Variable principal para el frontend:
+
+```text
+VITE_API_URL=https://mayitobus-api.onrender.com
+```
+
 ## Endpoints principales
 
 ```http
@@ -255,4 +307,4 @@ npm run build
 
 ## Estado
 
-Proyecto en desarrollo para portafolio. El flujo principal ya permite administrar catalogos, programar viajes, vender boletos con descuentos, controlar asientos, imprimir comprobantes y consultar reportes.
+Proyecto de portafolio desplegado en Render. El flujo principal permite administrar catalogos, programar viajes, vender boletos con descuentos, controlar asientos, imprimir comprobantes, conservar historial operativo y consultar reportes.
