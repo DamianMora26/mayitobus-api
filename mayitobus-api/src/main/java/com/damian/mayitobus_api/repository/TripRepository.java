@@ -10,7 +10,7 @@ public interface TripRepository extends JpaRepository<Trip, Long> {
 
     boolean existsByBus_IdAndDepartureDateTime(Long busId, LocalDateTime departureDateTime);
 
-    List<Trip> findByBus_IdAndStatusOrderByDepartureDateTimeAsc(Long busId, String status);
+    List<Trip> findByBus_IdAndStatusNotIgnoreCaseOrderByDepartureDateTimeAsc(Long busId, String status);
 
     List<Trip> findAllByOrderByDepartureDateTimeAsc();
 }

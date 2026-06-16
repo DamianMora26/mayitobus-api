@@ -1014,7 +1014,7 @@ function getRequestedTripWindow(departureDateTime: string, durationMinutes: numb
 
 function findBusScheduleConflict(busId: number, requestedWindow: TripWindow, trips: Trip[]) {
   return trips.find((trip) => {
-    if (trip.busId !== busId || trip.status !== 'SCHEDULED') {
+    if (trip.busId !== busId || trip.status === 'CANCELLED') {
       return false
     }
 

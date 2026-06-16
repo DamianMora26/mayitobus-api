@@ -55,7 +55,7 @@ class TripServiceTest {
         when(routeRepository.findById(1L)).thenReturn(Optional.of(route));
         when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
         when(tripRepository.existsByBus_IdAndDepartureDateTime(1L, departure)).thenReturn(false);
-        when(tripRepository.findByBus_IdAndStatusOrderByDepartureDateTimeAsc(1L, "SCHEDULED")).thenReturn(List.of());
+        when(tripRepository.findByBus_IdAndStatusNotIgnoreCaseOrderByDepartureDateTimeAsc(1L, "CANCELLED")).thenReturn(List.of());
         when(tripRepository.save(any(Trip.class))).thenAnswer(invocation -> {
             Trip trip = invocation.getArgument(0);
             ReflectionTestUtils.setField(trip, "id", 5L);
@@ -97,7 +97,7 @@ class TripServiceTest {
         when(routeRepository.findById(1L)).thenReturn(Optional.of(newRoute));
         when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
         when(tripRepository.existsByBus_IdAndDepartureDateTime(1L, departure)).thenReturn(false);
-        when(tripRepository.findByBus_IdAndStatusOrderByDepartureDateTimeAsc(1L, "SCHEDULED")).thenReturn(List.of(existingTrip));
+        when(tripRepository.findByBus_IdAndStatusNotIgnoreCaseOrderByDepartureDateTimeAsc(1L, "CANCELLED")).thenReturn(List.of(existingTrip));
 
         assertThatThrownBy(() -> tripService.createTrip(request))
                 .isInstanceOf(IllegalArgumentException.class)
@@ -117,7 +117,7 @@ class TripServiceTest {
         when(routeRepository.findById(1L)).thenReturn(Optional.of(newRoute));
         when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
         when(tripRepository.existsByBus_IdAndDepartureDateTime(1L, departure)).thenReturn(false);
-        when(tripRepository.findByBus_IdAndStatusOrderByDepartureDateTimeAsc(1L, "SCHEDULED")).thenReturn(List.of(existingTrip));
+        when(tripRepository.findByBus_IdAndStatusNotIgnoreCaseOrderByDepartureDateTimeAsc(1L, "CANCELLED")).thenReturn(List.of(existingTrip));
         when(tripRepository.save(any(Trip.class))).thenAnswer(invocation -> {
             Trip trip = invocation.getArgument(0);
             ReflectionTestUtils.setField(trip, "id", 6L);

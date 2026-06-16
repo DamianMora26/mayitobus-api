@@ -71,7 +71,7 @@ public class TripService {
     }
 
     private boolean hasOverlappingTrip(Long busId, LocalDateTime departureDateTime, LocalDateTime estimatedArrivalDateTime) {
-        return tripRepository.findByBus_IdAndStatusOrderByDepartureDateTimeAsc(busId, "SCHEDULED")
+        return tripRepository.findByBus_IdAndStatusNotIgnoreCaseOrderByDepartureDateTimeAsc(busId, "CANCELLED")
                 .stream()
                 .anyMatch(existingTrip -> {
                     LocalDateTime existingDeparture = existingTrip.getDepartureDateTime();
