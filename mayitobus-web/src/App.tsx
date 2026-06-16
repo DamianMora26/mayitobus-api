@@ -37,7 +37,7 @@ const passengerTypes: Array<{ value: PassengerType; label: string; discount: num
 ]
 
 const navItems: Array<{ id: Page; label: string; icon: typeof LayoutDashboard }> = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { id: 'dashboard', label: 'Panel', icon: LayoutDashboard },
   { id: 'tickets', label: 'Venta', icon: Ticket },
   { id: 'trips', label: 'Viajes', icon: CalendarClock },
   { id: 'buses', label: 'Autobuses', icon: BusFront },
@@ -152,7 +152,7 @@ function Shell({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
           </div>
           <span className="status-pill">API {user.token ? 'conectada' : 'pendiente'}</span>
         </header>
-        {page === 'dashboard' && <Dashboard />}
+        {page === 'dashboard' && <Dashboard onNavigate={setPage} />}
         {page === 'tickets' && <TicketSale user={user} />}
         {page === 'trips' && <TripsPage />}
         {page === 'buses' && <BusesPage />}
@@ -164,16 +164,21 @@ function Shell({ user, onLogout }: { user: AuthUser; onLogout: () => void }) {
   )
 }
 
-function Dashboard() {
+function Dashboard({ onNavigate }: { onNavigate: (page: Page) => void }) {
   const buses = useList<Bus[]>('buses', '/api/buses')
   const routes = useList<Route[]>('routes', '/api/routes')
   const trips = useList<Trip[]>('trips', '/api/trips')
   const tickets = useList<TicketType[]>('tickets', '/api/tickets')
-  const sold = tickets.data?.filter((ticket) => ticket.status === 'SOLD') ?? []
+  const operationalTrips = (trips.data ?? []).filter((trip) => !isTripArchived(trip))
+  const upcomingTrips = (trips.data ?? []).filter(isTripSellable)
+  const todayTickets = tickets.data?.filter(isTicketFromToday) ?? []
+  const dashboardTrips = upcomingTrips.slice(0, 6)
+  const dashboardTickets = todayTickets.slice(0, 6)
+  const sold = todayTickets.filter((ticket) => ticket.status === 'SOLD')
 
   return (
     <section className="page">
-        <PageTitle title="Dashboard" subtitle="Operacion actual de la terminal" />
+        <PageTitle title="Panel" subtitle="Operacion actual de la terminal" />
       <section className="hero-panel">
         <div>
           <span className="eyebrow">Consola de terminal</span>
@@ -184,42 +189,46 @@ function Dashboard() {
       <div className="metric-grid">
         <Metric icon={BusFront} label="Autobuses" value={buses.data?.length ?? 0} />
         <Metric icon={Map} label="Rutas" value={routes.data?.length ?? 0} />
-        <Metric icon={CalendarClock} label="Viajes" value={trips.data?.length ?? 0} />
-        <Metric icon={CircleDollarSign} label="Venta activa" value={money(sold.reduce((sum, ticket) => sum + Number(ticket.price), 0))} />
+        <Metric icon={CalendarClock} label="Viajes activos" value={operationalTrips.length} />
+        <Metric icon={CircleDollarSign} label="Venta de hoy" value={money(sold.reduce((sum, ticket) => sum + Number(ticket.price), 0))} />
       </div>
       <DataPanel title="Proximos viajes">
         <QueryError query={trips} />
         <table>
-          <thead><tr><th>Ruta</th><th>Autobus</th><th>Salida</th><th>Estatus</th></tr></thead>
+          <thead><tr><th>Ruta</th><th>Autobus</th><th>Salida</th><th>Estado</th></tr></thead>
           <tbody>
-            {(trips.data ?? []).slice(0, 6).map((trip) => (
+            {dashboardTrips.map((trip) => (
               <tr key={trip.id}>
                 <td>{trip.origin} - {trip.destination}</td>
                 <td>{trip.busNumber}</td>
                 <td>{dateTime(trip.departureDateTime)}</td>
-                <td><Badge>{trip.status}</Badge></td>
+                <td><Badge>{tripStatusLabel(trip)}</Badge></td>
               </tr>
             ))}
+            {!upcomingTrips.length && <EmptyRow colSpan={4}>No hay viajes proximos.</EmptyRow>}
           </tbody>
         </table>
+        <PanelSummary current={dashboardTrips.length} total={upcomingTrips.length} label="viajes proximos" onClick={() => onNavigate('trips')} action="Ver agenda" />
       </DataPanel>
-      <DataPanel title="Ultimos boletos">
+      <DataPanel title="Boletos de hoy">
         <QueryError query={tickets} />
         <table>
-          <thead><tr><th>Pasajero</th><th>Ruta</th><th>Categoria</th><th>Asiento</th><th>Total</th><th>Estatus</th></tr></thead>
+          <thead><tr><th>Pasajero</th><th>Ruta</th><th>Categoria</th><th>Asiento</th><th>Total</th><th>Estado</th></tr></thead>
           <tbody>
-            {(tickets.data ?? []).slice(0, 6).map((ticket) => (
+            {dashboardTickets.map((ticket) => (
               <tr key={ticket.id}>
                 <td>{ticket.passengerName}</td>
                 <td>{ticket.origin} - {ticket.destination}</td>
                 <td>{passengerTypeLabel(ticket.passengerType)}</td>
                 <td>{ticket.seatNumber}</td>
                 <td>{money(ticket.price)}</td>
-                <td><Badge>{ticket.status}</Badge></td>
+                <td><Badge>{statusLabel(ticket.status)}</Badge></td>
               </tr>
             ))}
+            {!todayTickets.length && <EmptyRow colSpan={6}>No hay boletos vendidos hoy.</EmptyRow>}
           </tbody>
         </table>
+        <PanelSummary current={dashboardTickets.length} total={todayTickets.length} label="boletos de hoy" onClick={() => onNavigate('tickets')} action="Ver boletos" />
       </DataPanel>
     </section>
   )
@@ -243,8 +252,8 @@ function BusesPage() {
         <DataPanel title="Flota">
           <QueryError query={buses} />
           <table>
-            <thead><tr><th>Numero</th><th>Placas</th><th>Modelo</th><th>Capacidad</th><th>Estatus</th><th></th></tr></thead>
-            <tbody>{(buses.data ?? []).map((bus) => <tr key={bus.id}><td>{bus.busNumber}</td><td>{bus.licensePlate}</td><td>{bus.model}</td><td>{bus.capacity}</td><td><Badge>{bus.status}</Badge></td><td><button className="ghost small-button" onClick={() => updateStatus.mutate({ id: bus.id, action: bus.status === 'ACTIVE' ? 'deactivate' : 'activate' })}>{bus.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody>
+            <thead><tr><th>Numero</th><th>Placas</th><th>Modelo</th><th>Capacidad</th><th>Estado</th><th></th></tr></thead>
+            <tbody>{(buses.data ?? []).map((bus) => <tr key={bus.id}><td>{bus.busNumber}</td><td>{bus.licensePlate}</td><td>{bus.model}</td><td>{bus.capacity}</td><td><Badge>{statusLabel(bus.status)}</Badge></td><td><button className="ghost small-button" onClick={() => updateStatus.mutate({ id: bus.id, action: bus.status === 'ACTIVE' ? 'deactivate' : 'activate' })}>{bus.status === 'ACTIVE' ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody>
           </table>
           <MutationError mutation={updateStatus} />
         </DataPanel>
@@ -280,8 +289,8 @@ function RoutesPage() {
         <DataPanel title="Rutas activas">
           <QueryError query={routes} />
           <table>
-            <thead><tr><th>Origen</th><th>Destino</th><th>Precio</th><th>Duracion</th><th>Estatus</th><th></th></tr></thead>
-            <tbody>{(routes.data ?? []).map((route) => <tr key={route.id}><td>{route.origin}</td><td>{route.destination}</td><td>{money(route.basePrice)}</td><td>{durationLabel(route.estimatedDurationMinutes)}</td><td><Badge>{route.active ? 'ACTIVE' : 'INACTIVE'}</Badge></td><td><button className="ghost small-button" onClick={() => updateStatus.mutate({ id: route.id, action: route.active ? 'deactivate' : 'activate' })}>{route.active ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody>
+            <thead><tr><th>Origen</th><th>Destino</th><th>Precio</th><th>Duracion</th><th>Estado</th><th></th></tr></thead>
+            <tbody>{(routes.data ?? []).map((route) => <tr key={route.id}><td>{route.origin}</td><td>{route.destination}</td><td>{money(route.basePrice)}</td><td>{durationLabel(route.estimatedDurationMinutes)}</td><td><Badge>{statusLabel(route.active ? 'ACTIVE' : 'INACTIVE')}</Badge></td><td><button className="ghost small-button" onClick={() => updateStatus.mutate({ id: route.id, action: route.active ? 'deactivate' : 'activate' })}>{route.active ? 'Desactivar' : 'Activar'}</button></td></tr>)}</tbody>
           </table>
           <MutationError mutation={updateStatus} />
         </DataPanel>
@@ -315,22 +324,37 @@ function TripsPage() {
   const trips = useList<Trip[]>('trips', '/api/trips')
   const routes = useList<Route[]>('routes', '/api/routes')
   const buses = useList<Bus[]>('buses', '/api/buses')
+  const [view, setView] = useState<'agenda' | 'history'>('agenda')
   const [form, setForm] = useState({ routeId: '', busId: '', departureDateTime: '' })
   const create = useCreate('/api/trips', ['trips'], () => setForm({ routeId: '', busId: '', departureDateTime: '' }))
   const cancel = useMutation({
     mutationFn: async (tripId: number) => (await api.patch(`/api/trips/${tripId}/cancel`)).data,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['trips'] }),
   })
+  const activeTrips = (trips.data ?? []).filter((trip) => !isTripArchived(trip))
+  const historyTrips = [...(trips.data ?? []).filter(isTripArchived)].sort((left, right) => new Date(right.departureDateTime).getTime() - new Date(left.departureDateTime).getTime())
+  const visibleTrips = view === 'agenda' ? activeTrips : historyTrips
 
   return (
     <section className="page two-column">
       <div>
-        <PageTitle title="Viajes" subtitle="Primero crea una ruta y un autobus; luego programa la salida aqui." />
+        <PageTitle title="Viajes" subtitle="La agenda muestra la operacion vigente; los viajes pasados quedan guardados en historial." />
         <DataPanel title="Agenda">
           <QueryError query={trips} />
+          <div className="segmented-control" role="tablist" aria-label="Vista de viajes">
+            <button className={view === 'agenda' ? 'active' : ''} onClick={() => setView('agenda')} type="button">
+              Agenda ({activeTrips.length})
+            </button>
+            <button className={view === 'history' ? 'active' : ''} onClick={() => setView('history')} type="button">
+              Historial ({historyTrips.length})
+            </button>
+          </div>
           <table>
-            <thead><tr><th>Ruta</th><th>Autobus</th><th>Salida</th><th>Llegada</th><th>Estatus</th><th></th></tr></thead>
-            <tbody>{(trips.data ?? []).map((trip) => <tr key={trip.id}><td>{trip.origin} - {trip.destination}</td><td>{trip.busNumber}</td><td>{dateTime(trip.departureDateTime)}</td><td>{dateTime(trip.estimatedArrivalDateTime)}</td><td><Badge>{trip.status}</Badge></td><td>{trip.status === 'SCHEDULED' && <button className="ghost small-button" onClick={() => cancel.mutate(trip.id)}>Cancelar</button>}</td></tr>)}</tbody>
+            <thead><tr><th>Ruta</th><th>Autobus</th><th>Salida</th><th>Llegada</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              {visibleTrips.map((trip) => <tr key={trip.id}><td>{trip.origin} - {trip.destination}</td><td>{trip.busNumber}</td><td>{dateTime(trip.departureDateTime)}</td><td>{dateTime(trip.estimatedArrivalDateTime)}</td><td><Badge>{tripStatusLabel(trip)}</Badge></td><td>{isTripSellable(trip) && <button className="ghost small-button" onClick={() => cancel.mutate(trip.id)}>Cancelar</button>}</td></tr>)}
+              {!visibleTrips.length && <EmptyRow colSpan={6}>{view === 'agenda' ? 'No hay viajes vigentes.' : 'Todavia no hay viajes en historial.'}</EmptyRow>}
+            </tbody>
           </table>
           <MutationError mutation={cancel} />
         </DataPanel>
@@ -363,9 +387,13 @@ function TicketSale({ user }: { user: AuthUser }) {
   const [seatNumber, setSeatNumber] = useState('')
   const [passengerType, setPassengerType] = useState<PassengerType>('NORMAL')
   const [printTicket, setPrintTicket] = useState<TicketType | null>(null)
+  const [ticketView, setTicketView] = useState<'today' | 'history'>('today')
   const selectedTripId = Number(tripId)
-  const scheduledTrips = (trips.data ?? []).filter((trip) => trip.status === 'SCHEDULED')
+  const scheduledTrips = (trips.data ?? []).filter(isTripSellable)
   const selectedTrip = (trips.data ?? []).find((trip) => trip.id === selectedTripId)
+  const todayTickets = (tickets.data ?? []).filter(isTicketFromToday)
+  const historyTickets = (tickets.data ?? []).filter((ticket) => !isTicketFromToday(ticket))
+  const visibleTickets = ticketView === 'today' ? todayTickets : historyTickets
   const selectedPassengerType = passengerTypes.find((type) => type.value === passengerType) ?? passengerTypes[0]
   const finalPrice = selectedTrip ? selectedTrip.basePrice * (1 - selectedPassengerType.discount / 100) : 0
   const seats = useQuery({
@@ -437,11 +465,22 @@ function TicketSale({ user }: { user: AuthUser }) {
           )}
           <MutationError mutation={create} />
         </section>
-        <DataPanel title="Boletos recientes">
+        <DataPanel title="Boletos">
           <QueryError query={tickets} />
+          <div className="segmented-control" role="tablist" aria-label="Vista de boletos">
+            <button className={ticketView === 'today' ? 'active' : ''} onClick={() => setTicketView('today')} type="button">
+              Hoy ({todayTickets.length})
+            </button>
+            <button className={ticketView === 'history' ? 'active' : ''} onClick={() => setTicketView('history')} type="button">
+              Historial ({historyTickets.length})
+            </button>
+          </div>
           <table>
-            <thead><tr><th>Pasajero</th><th>Categoria</th><th>Ruta</th><th>Asiento</th><th>Precio</th><th>Estatus</th><th></th></tr></thead>
-            <tbody>{(tickets.data ?? []).slice(0, 10).map((ticket) => <tr key={ticket.id}><td>{ticket.passengerName}</td><td>{passengerTypeLabel(ticket.passengerType)}</td><td>{ticket.origin} - {ticket.destination}</td><td>{ticket.seatNumber}</td><td>{money(ticket.price)}</td><td><Badge>{ticket.status}</Badge></td><td className="row-actions"><button className="ghost small-button" onClick={() => setPrintTicket(ticket)}>Imprimir</button>{ticket.status === 'SOLD' && <button className="ghost small-button" onClick={() => cancel.mutate(ticket.id)}>Cancelar</button>}</td></tr>)}</tbody>
+            <thead><tr><th>Pasajero</th><th>Categoria</th><th>Ruta</th><th>Venta</th><th>Asiento</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+              {visibleTickets.map((ticket) => <tr key={ticket.id}><td>{ticket.passengerName}</td><td>{passengerTypeLabel(ticket.passengerType)}</td><td>{ticket.origin} - {ticket.destination}</td><td>{dateTime(ticket.soldAt)}</td><td>{ticket.seatNumber}</td><td>{money(ticket.price)}</td><td><Badge>{statusLabel(ticket.status)}</Badge></td><td className="row-actions"><button className="ghost small-button" onClick={() => setPrintTicket(ticket)}>Imprimir</button>{isTicketCancellable(ticket) && <button className="ghost small-button" onClick={() => cancel.mutate(ticket.id)}>Cancelar</button>}</td></tr>)}
+              {!visibleTickets.length && <EmptyRow colSpan={8}>{ticketView === 'today' ? 'No hay boletos vendidos hoy.' : 'Todavia no hay boletos en historial.'}</EmptyRow>}
+            </tbody>
           </table>
           <MutationError mutation={cancel} />
         </DataPanel>
@@ -516,11 +555,154 @@ function PrintableTicket({ ticket, onClose }: { ticket: TicketType; onClose: () 
         </div>
         <div className="modal-actions">
           <button className="ghost" onClick={onClose}>Cerrar</button>
-          <button className="primary-action" onClick={() => window.print()}><Printer size={17} />Imprimir</button>
+          <button className="primary-action" onClick={printTicketPaper}><Printer size={17} />Imprimir</button>
         </div>
       </section>
     </div>
   )
+}
+
+function printTicketPaper() {
+  const ticket = document.getElementById('printable-ticket')
+
+  if (!ticket) return
+
+  const frame = document.createElement('iframe')
+  frame.title = 'Impresion de boleto'
+  frame.style.position = 'fixed'
+  frame.style.right = '0'
+  frame.style.bottom = '0'
+  frame.style.width = '1px'
+  frame.style.height = '1px'
+  frame.style.border = '0'
+  frame.style.opacity = '0'
+  document.body.appendChild(frame)
+
+  const frameWindow = frame.contentWindow
+  const frameDocument = frameWindow?.document
+
+  if (!frameWindow || !frameDocument) {
+    frame.remove()
+    return
+  }
+
+  frameWindow.onafterprint = () => frame.remove()
+  frameDocument.open()
+  frameDocument.write(`
+    <!doctype html>
+    <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <base href="${window.location.origin}" />
+        <title>Boleto MayitoBus</title>
+        <style>
+          @page { margin: 12mm; size: auto; }
+          * { box-sizing: border-box; }
+          body {
+            margin: 0;
+            background: #fff;
+            color: #182227;
+            font-family: Inter, ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          .ticket-paper {
+            width: 420px;
+            background: #fff;
+            border: 1px dashed #b8c5cc;
+            border-radius: 16px;
+            padding: 22px;
+            box-shadow: none;
+            page-break-inside: avoid;
+            break-inside: avoid;
+          }
+          .ticket-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding-bottom: 16px;
+            border-bottom: 3px solid #ffc928;
+          }
+          .ticket-brand img {
+            width: 58px;
+            height: 58px;
+            object-fit: cover;
+            border-radius: 12px;
+          }
+          .ticket-brand strong,
+          .ticket-brand span {
+            display: block;
+          }
+          .ticket-brand strong {
+            font-size: 20px;
+          }
+          .ticket-brand span,
+          .ticket-details span,
+          .ticket-total span {
+            color: #66727a;
+          }
+          .ticket-brand span,
+          .ticket-details span {
+            font-size: 13px;
+          }
+          .ticket-route {
+            min-height: 78px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            color: #c7192f;
+            font-size: 19px;
+            font-weight: 900;
+          }
+          .ticket-route strong {
+            color: #1e6fb6;
+          }
+          .ticket-details {
+            display: grid;
+            grid-template-columns: 110px 1fr;
+            gap: 10px 14px;
+            padding: 16px 0;
+            border-top: 1px solid #edf1f3;
+            border-bottom: 1px solid #edf1f3;
+          }
+          .ticket-details strong {
+            color: #182227;
+          }
+          .ticket-total {
+            margin-top: 16px;
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+          }
+          .ticket-total strong {
+            color: #c7192f;
+            font-size: 30px;
+          }
+        </style>
+      </head>
+      <body>${ticket.outerHTML}</body>
+    </html>
+  `)
+  frameDocument.close()
+
+  const images = Array.from(frameDocument.images)
+  const imageLoad = images.map((image) => {
+    if (image.complete) return Promise.resolve()
+
+    return new Promise<void>((resolve) => {
+      image.onload = () => resolve()
+      image.onerror = () => resolve()
+    })
+  })
+
+  Promise.all(imageLoad).then(() => {
+    frameWindow.focus()
+    frameWindow.print()
+    window.setTimeout(() => {
+      if (document.body.contains(frame)) frame.remove()
+    }, 1000)
+  })
 }
 
 function ReportsPage() {
@@ -531,6 +713,7 @@ function ReportsPage() {
     queryKey: ['sales-report', from, to],
     queryFn: async () => (await api.get<SalesReport>(`/api/reports/sales?from=${from}&to=${to}`)).data,
   })
+  const dailyReports = report.data?.dailyReports ?? []
 
   return (
     <section className="page">
@@ -547,14 +730,73 @@ function ReportsPage() {
         <Metric icon={CircleDollarSign} label="Bruto" value={money(report.data?.grossRevenue ?? 0)} />
         <Metric icon={BarChart3} label="Neto" value={money(report.data?.netRevenue ?? 0)} />
       </div>
+      <ReportVisuals rows={dailyReports} />
       <DataPanel title="Desglose diario">
         <QueryError query={report} />
         <table>
           <thead><tr><th>Fecha</th><th>Vendidos</th><th>Cancelados</th><th>Bruto</th><th>Neto</th></tr></thead>
-          <tbody>{(report.data?.dailyReports ?? []).map((row) => <tr key={row.date}><td>{row.date}</td><td>{row.soldTickets}</td><td>{row.cancelledTickets}</td><td>{money(row.grossRevenue)}</td><td>{money(row.netRevenue)}</td></tr>)}</tbody>
+          <tbody>
+            {dailyReports.map((row) => <tr key={row.date}><td>{dateOnly(row.date)}</td><td>{row.soldTickets}</td><td>{row.cancelledTickets}</td><td>{money(row.grossRevenue)}</td><td>{money(row.netRevenue)}</td></tr>)}
+            {!dailyReports.length && <EmptyRow colSpan={5}>No hay movimientos en este rango.</EmptyRow>}
+          </tbody>
         </table>
       </DataPanel>
     </section>
+  )
+}
+
+function ReportVisuals({ rows }: { rows: SalesReport['dailyReports'] }) {
+  const maxRevenue = Math.max(...rows.map((row) => Number(row.netRevenue)), 1)
+  const maxTickets = Math.max(...rows.map((row) => row.soldTickets + row.cancelledTickets), 1)
+
+  return (
+    <div className="report-visual-grid">
+      <DataPanel title="Venta neta por dia">
+        {rows.length ? (
+          <div className="report-chart">
+            {rows.map((row) => {
+              const width = Math.max((Number(row.netRevenue) / maxRevenue) * 100, Number(row.netRevenue) > 0 ? 4 : 0)
+
+              return (
+                <div className="report-bar-row" key={row.date}>
+                  <span>{dateOnly(row.date)}</span>
+                  <div className="report-bar-track"><i className="report-bar net" style={{ width: `${width}%` }} /></div>
+                  <strong>{money(row.netRevenue)}</strong>
+                </div>
+              )
+            })}
+          </div>
+        ) : <EmptyPanel>No hay ventas para graficar.</EmptyPanel>}
+      </DataPanel>
+      <DataPanel title="Boletos por dia">
+        {rows.length ? (
+          <div className="report-chart">
+            {rows.map((row) => {
+              const soldWidth = Math.max((row.soldTickets / maxTickets) * 100, row.soldTickets > 0 ? 4 : 0)
+              const cancelledWidth = Math.max((row.cancelledTickets / maxTickets) * 100, row.cancelledTickets > 0 ? 4 : 0)
+
+              return (
+                <div className="ticket-bar-row" key={row.date}>
+                  <div className="ticket-bar-label">
+                    <span>{dateOnly(row.date)}</span>
+                    <strong>{row.soldTickets} vendidos</strong>
+                  </div>
+                  <div className="ticket-bar-stack">
+                    <i className="report-bar sold" style={{ width: `${soldWidth}%` }} />
+                    <i className="report-bar cancelled" style={{ width: `${cancelledWidth}%` }} />
+                  </div>
+                  <small>{row.cancelledTickets} cancelados</small>
+                </div>
+              )
+            })}
+            <div className="report-legend">
+              <span><i className="legend-dot sold" />Vendidos</span>
+              <span><i className="legend-dot cancelled" />Cancelados</span>
+            </div>
+          </div>
+        ) : <EmptyPanel>No hay boletos para graficar.</EmptyPanel>}
+      </DataPanel>
+    </div>
   )
 }
 
@@ -581,14 +823,14 @@ function UsersPage() {
         <DataPanel title="Equipo">
           <QueryError query={users} />
           <table>
-            <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estatus</th><th></th></tr></thead>
+            <thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th></th></tr></thead>
             <tbody>
               {(users.data ?? []).map((item) => (
                 <tr key={item.id}>
                   <td>{item.fullName}</td>
                   <td>{item.email}</td>
                   <td>{roleLabel(item.roleName)}</td>
-                  <td><Badge>{item.active ? 'ACTIVE' : 'INACTIVE'}</Badge></td>
+                  <td><Badge>{statusLabel(item.active ? 'ACTIVE' : 'INACTIVE')}</Badge></td>
                   <td><button className="ghost small-button" onClick={() => updateStatus.mutate({ id: item.id, action: item.active ? 'deactivate' : 'activate' })}>{item.active ? 'Desactivar' : 'Activar'}</button></td>
                 </tr>
               ))}
@@ -641,6 +883,15 @@ function DataPanel({ title, children }: { title: string; children: ReactNode }) 
   return <section className="panel"><h2>{title}</h2><div className="panel-body">{children}</div></section>
 }
 
+function PanelSummary({ current, total, label, action, onClick }: { current: number; total: number; label: string; action: string; onClick: () => void }) {
+  return (
+    <div className="panel-summary">
+      <span>Mostrando {current} de {total} {label}</span>
+      <button className="ghost small-button" type="button" onClick={onClick}>{action}</button>
+    </div>
+  )
+}
+
 function Metric({ icon: Icon, label, value }: { icon: typeof LayoutDashboard; label: string; value: string | number }) {
   return <div className="metric"><Icon size={21} /><span>{label}</span><strong>{value}</strong></div>
 }
@@ -667,6 +918,18 @@ function QueryError({ query }: { query: { error: unknown } }) {
   return error ? <div className="alert">{error.message}</div> : null
 }
 
+function EmptyRow({ children, colSpan }: { children: ReactNode; colSpan: number }) {
+  return (
+    <tr>
+      <td className="empty-cell" colSpan={colSpan}>{children}</td>
+    </tr>
+  )
+}
+
+function EmptyPanel({ children }: { children: ReactNode }) {
+  return <div className="empty-panel">{children}</div>
+}
+
 function money(value: number) {
   return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(value))
 }
@@ -677,6 +940,21 @@ function roleLabel(role: string) {
 
 function passengerTypeLabel(type: string) {
   return passengerTypes.find((passengerType) => passengerType.value === type)?.label ?? type
+}
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    ACTIVE: 'Activo',
+    INACTIVE: 'Inactivo',
+    SCHEDULED: 'Programado',
+    IN_PROGRESS: 'En curso',
+    FINISHED: 'Finalizado',
+    CANCELLED: 'Cancelado',
+    SOLD: 'Vendido',
+    AVAILABLE: 'Disponible',
+  }
+
+  return labels[status] ?? status
 }
 
 function durationLabel(minutes: number) {
@@ -704,6 +982,46 @@ function durationToMinutes(value: string, unit: DurationUnit) {
   return Math.round(numericValue)
 }
 
+function isTripSellable(trip: Trip) {
+  return trip.status === 'SCHEDULED' && new Date(trip.departureDateTime).getTime() > Date.now()
+}
+
+function isTicketFromToday(ticket: TicketType) {
+  return isSameLocalDate(ticket.soldAt, new Date())
+}
+
+function isTicketCancellable(ticket: TicketType) {
+  return ticket.status === 'SOLD' && new Date(ticket.departureDateTime).getTime() > Date.now()
+}
+
+function isSameLocalDate(value: string, date: Date) {
+  const valueDate = new Date(value)
+
+  return valueDate.getFullYear() === date.getFullYear()
+    && valueDate.getMonth() === date.getMonth()
+    && valueDate.getDate() === date.getDate()
+}
+
+function isTripArchived(trip: Trip) {
+  return trip.status === 'CANCELLED' || new Date(trip.estimatedArrivalDateTime).getTime() < Date.now()
+}
+
+function tripStatusLabel(trip: Trip) {
+  if (trip.status === 'CANCELLED') return statusLabel('CANCELLED')
+  if (isTripArchived(trip)) return statusLabel('FINISHED')
+  if (isTripInProgress(trip)) return statusLabel('IN_PROGRESS')
+
+  return statusLabel(trip.status)
+}
+
+function isTripInProgress(trip: Trip) {
+  const now = Date.now()
+
+  return trip.status === 'SCHEDULED'
+    && new Date(trip.departureDateTime).getTime() <= now
+    && new Date(trip.estimatedArrivalDateTime).getTime() >= now
+}
+
 function seatSlotClass(seatNumber: number) {
   const position = (seatNumber - 1) % 4
 
@@ -716,4 +1034,14 @@ function seatSlotClass(seatNumber: number) {
 
 function dateTime(value: string) {
   return new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+}
+
+function dateOnly(value: string) {
+  const [year, month, day] = value.split('-').map(Number)
+
+  if (!year || !month || !day) {
+    return value
+  }
+
+  return new Intl.DateTimeFormat('es-MX', { dateStyle: 'medium' }).format(new Date(year, month - 1, day))
 }

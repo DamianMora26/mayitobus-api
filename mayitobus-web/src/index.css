@@ -224,7 +224,7 @@ select:focus {
   display: flex;
   flex-direction: column;
   gap: 18px;
-  border-right: 6px solid #1e6fb6;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .sidebar-brand {
@@ -436,6 +436,35 @@ select:focus {
   overflow-x: auto;
 }
 
+.segmented-control {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border: 1px solid #dce4e8;
+  border-radius: 10px;
+  background: #f4f7f8;
+}
+
+.segmented-control button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #41515a;
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.segmented-control button.active {
+  background: #fff;
+  color: #c7192f;
+  box-shadow: 0 5px 14px rgba(18, 39, 52, 0.1);
+}
+
 .two-column {
   grid-template-columns: minmax(0, 1fr) 340px;
   align-items: start;
@@ -546,6 +575,122 @@ th {
   font-size: 12px;
 }
 
+.empty-cell {
+  color: #66727a;
+  text-align: center;
+  padding: 22px 12px;
+}
+
+.panel-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #edf1f3;
+  color: #66727a;
+  font-size: 13px;
+}
+
+.empty-panel {
+  border: 1px dashed #d6dce0;
+  border-radius: 10px;
+  color: #66727a;
+  padding: 18px;
+  text-align: center;
+}
+
+.report-visual-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.report-chart {
+  display: grid;
+  gap: 12px;
+}
+
+.report-bar-row {
+  display: grid;
+  grid-template-columns: 110px minmax(120px, 1fr) 110px;
+  gap: 10px;
+  align-items: center;
+}
+
+.report-bar-row span,
+.ticket-bar-label span,
+.ticket-bar-row small {
+  color: #66727a;
+  font-size: 12px;
+}
+
+.report-bar-row strong,
+.ticket-bar-label strong {
+  color: #182227;
+  font-size: 13px;
+}
+
+.report-bar-track,
+.ticket-bar-stack {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.report-bar-track {
+  min-height: 12px;
+  border-radius: 999px;
+  background: #edf3f7;
+  overflow: hidden;
+}
+
+.report-bar {
+  display: block;
+  min-height: 12px;
+  border-radius: 999px;
+}
+
+.report-bar.net {
+  background: #c7192f;
+}
+
+.report-bar.sold {
+  background: #1e6fb6;
+}
+
+.report-bar.cancelled {
+  background: #efb5af;
+}
+
+.ticket-bar-row {
+  display: grid;
+  grid-template-columns: 120px minmax(120px, 1fr) 88px;
+  gap: 10px;
+  align-items: center;
+}
+
+.ticket-bar-label {
+  display: grid;
+  gap: 3px;
+}
+
+.report-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding-top: 4px;
+  color: #66727a;
+  font-size: 12px;
+}
+
+.report-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .seat-summary,
 .date-filter {
   display: flex;
@@ -566,9 +711,7 @@ th {
   border: 1px solid #d7e1e7;
   border-radius: 18px;
   padding: 14px;
-  background:
-    linear-gradient(90deg, transparent 0 44%, rgba(30, 111, 182, 0.08) 44% 56%, transparent 56%),
-    linear-gradient(180deg, #fdfefe, #f3f7f9);
+  background: linear-gradient(180deg, #fdfefe, #f3f7f9);
 }
 
 .bus-front-marker {
@@ -681,6 +824,11 @@ th {
 .legend-dot.sold {
   border-color: #efb5af;
   background: #fff1ef;
+}
+
+.legend-dot.cancelled {
+  border-color: #efb5af;
+  background: #efb5af;
 }
 
 .refresh {
@@ -798,20 +946,56 @@ th {
 }
 
 @media print {
+  @page {
+    margin: 12mm;
+    size: auto;
+  }
+
+  html,
+  body,
+  #root {
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0;
+    background: #fff;
+    overflow: hidden !important;
+  }
+
   body * {
-    visibility: hidden;
+    visibility: hidden !important;
+  }
+
+  .modal-backdrop {
+    visibility: visible !important;
+    position: fixed;
+    inset: 0 auto auto 0;
+    padding: 0;
+    background: transparent;
+  }
+
+  .ticket-modal {
+    visibility: visible !important;
+    width: 420px;
+    gap: 0;
+  }
+
+  .modal-actions {
+    visibility: hidden !important;
   }
 
   #printable-ticket,
   #printable-ticket * {
-    visibility: visible;
+    visibility: visible !important;
   }
 
   #printable-ticket {
     position: fixed;
-    inset: 20px auto auto 20px;
+    inset: 0 auto auto 0;
     width: 420px;
     box-shadow: none;
+    page-break-inside: avoid;
   }
 }
 
@@ -860,6 +1044,10 @@ th {
   }
 
   .duration-field {
+    grid-template-columns: 1fr;
+  }
+
+  .report-visual-grid {
     grid-template-columns: 1fr;
   }
 }
@@ -977,6 +1165,17 @@ th {
 
   .row-actions {
     justify-content: flex-start;
+  }
+
+  .panel-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .report-bar-row,
+  .ticket-bar-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
   }
 
   table {
