@@ -28,6 +28,10 @@ Nota: el plan gratuito de Render puede pausar la API por inactividad. La primera
 
 ![Panel](docs/screenshots/dashboard.png)
 
+### Agenda de viajes
+
+![Agenda de viajes](docs/screenshots/trips.png)
+
 ### Venta de boletos y boleto imprimible
 
 ![Venta de boletos](docs/screenshots/ticket-sale.png)
@@ -65,6 +69,7 @@ Nota: el plan gratuito de Render puede pausar la API por inactividad. La primera
 - Gestion de rutas con activacion y desactivacion.
 - Programacion y cancelacion de viajes.
 - Separacion de agenda operativa e historial para viajes.
+- Validacion de horarios para evitar que un autobus tenga viajes empalmados.
 - Venta y cancelacion de boletos.
 - Separacion de boletos del dia e historial.
 - Categorias de boleto con descuento:
@@ -76,6 +81,7 @@ Nota: el plan gratuito de Render puede pausar la API por inactividad. La primera
 - Control de asientos por viaje.
 - Boleto imprimible.
 - Reportes de ventas por rango de fechas con visualizacion diaria.
+- Mensajes de validacion claros para orientar al usuario durante la captura.
 - Despliegue con frontend, API y PostgreSQL en Render.
 
 ## Modelo de dominio
