@@ -334,6 +334,9 @@ function TripsPage() {
   const activeTrips = (trips.data ?? []).filter((trip) => !isTripArchived(trip))
   const historyTrips = [...(trips.data ?? []).filter(isTripArchived)].sort((left, right) => new Date(right.departureDateTime).getTime() - new Date(left.departureDateTime).getTime())
   const visibleTrips = view === 'agenda' ? activeTrips : historyTrips
+  const selectedRoute = (routes.data ?? []).find((route) => route.id === Number(form.routeId))
+  const tripWindow = selectedRoute && form.departureDateTime ? getRequestedTripWindow(form.departureDateTime, selectedRoute.estimatedDurationMinutes) : null
+  const selectedBusConflict = form.busId && tripWindow ? findBusScheduleConflict(Number(form.busId), tripWindow, trips.data ?? []) : null
 
   return (
     <section className="page two-column">
@@ -367,10 +370,19 @@ function TripsPage() {
           </select>
           <select value={form.busId} onChange={(e) => setForm({ ...form, busId: e.target.value })}>
             <option value="">{(buses.data ?? []).length ? 'Autobus' : 'Primero registra un autobus'}</option>
-            {(buses.data ?? []).map((bus) => <option key={bus.id} value={bus.id}>{bus.busNumber} ({bus.capacity})</option>)}
+            {(buses.data ?? []).map((bus) => {
+              const conflict = tripWindow ? findBusScheduleConflict(bus.id, tripWindow, trips.data ?? []) : null
+
+              return (
+                <option key={bus.id} value={bus.id} disabled={Boolean(conflict)}>
+                  {bus.busNumber} ({bus.capacity}){conflict ? ` - ocupado hasta ${dateTime(conflict.estimatedArrivalDateTime)}` : ''}
+                </option>
+              )
+            })}
           </select>
           <input type="datetime-local" value={form.departureDateTime} onChange={(e) => setForm({ ...form, departureDateTime: e.target.value })} />
-          <SubmitButton loading={create.isPending}>Programar viaje</SubmitButton>
+          {selectedBusConflict && <div className="info-message">Ese autobus ya tiene un viaje que se cruza con este horario. Selecciona otro autobus o programa la salida despues de {dateTime(selectedBusConflict.estimatedArrivalDateTime)}.</div>}
+          <SubmitButton loading={create.isPending} disabled={Boolean(selectedBusConflict)}>Programar viaje</SubmitButton>
           <MutationError mutation={create} />
         </form>
       </DataPanel>
@@ -900,8 +912,8 @@ function Badge({ children }: { children: ReactNode }) {
   return <span className="badge">{children}</span>
 }
 
-function SubmitButton({ loading, children }: { loading: boolean; children: ReactNode }) {
-  return <button className="primary-action" disabled={loading}><Plus size={17} />{loading ? 'Guardando...' : children}</button>
+function SubmitButton({ loading, disabled = false, children }: { loading: boolean; disabled?: boolean; children: ReactNode }) {
+  return <button className="primary-action" disabled={loading || disabled}><Plus size={17} />{loading ? 'Guardando...' : children}</button>
 }
 
 function RefreshButton({ onClick }: { onClick: () => void }) {
@@ -984,6 +996,33 @@ function durationToMinutes(value: string, unit: DurationUnit) {
 
 function isTripSellable(trip: Trip) {
   return trip.status === 'SCHEDULED' && new Date(trip.departureDateTime).getTime() > Date.now()
+}
+
+type TripWindow = {
+  departure: Date
+  arrival: Date
+}
+
+function getRequestedTripWindow(departureDateTime: string, durationMinutes: number): TripWindow {
+  const departure = new Date(departureDateTime)
+
+  return {
+    departure,
+    arrival: new Date(departure.getTime() + durationMinutes * 60_000),
+  }
+}
+
+function findBusScheduleConflict(busId: number, requestedWindow: TripWindow, trips: Trip[]) {
+  return trips.find((trip) => {
+    if (trip.busId !== busId || trip.status !== 'SCHEDULED') {
+      return false
+    }
+
+    const existingDeparture = new Date(trip.departureDateTime)
+    const existingArrival = new Date(trip.estimatedArrivalDateTime)
+
+    return requestedWindow.departure < existingArrival && requestedWindow.arrival > existingDeparture
+  }) ?? null
 }
 
 function isTicketFromToday(ticket: TicketType) {

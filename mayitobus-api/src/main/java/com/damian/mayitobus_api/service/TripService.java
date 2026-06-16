@@ -11,6 +11,7 @@ import com.damian.mayitobus_api.repository.TripRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -48,18 +49,36 @@ public class TripService {
             throw new IllegalArgumentException("debe ser una fecha futura");
         }
 
-        if (tripRepository.existsByBus_IdAndDepartureDateTime(bus.getId(), request.getDepartureDateTime())) {
+        LocalDateTime departureDateTime = request.getDepartureDateTime();
+        LocalDateTime estimatedArrivalDateTime = departureDateTime.plusMinutes(route.getEstimatedDurationMinutes());
+
+        if (tripRepository.existsByBus_IdAndDepartureDateTime(bus.getId(), departureDateTime)) {
             throw new IllegalArgumentException("El autobus ya tiene un viaje programado en esa fecha y hora");
+        }
+
+        if (hasOverlappingTrip(bus.getId(), departureDateTime, estimatedArrivalDateTime)) {
+            throw new IllegalArgumentException("El autobus ya tiene un viaje programado que se cruza con ese horario");
         }
 
         Trip trip = new Trip();
         trip.setRoute(route);
         trip.setBus(bus);
-        trip.setDepartureDateTime(request.getDepartureDateTime());
+        trip.setDepartureDateTime(departureDateTime);
         trip.setStatus("SCHEDULED");
         trip.setCreatedAt(timeService.now());
 
         return new TripResponse(tripRepository.save(trip));
+    }
+
+    private boolean hasOverlappingTrip(Long busId, LocalDateTime departureDateTime, LocalDateTime estimatedArrivalDateTime) {
+        return tripRepository.findByBus_IdAndStatusOrderByDepartureDateTimeAsc(busId, "SCHEDULED")
+                .stream()
+                .anyMatch(existingTrip -> {
+                    LocalDateTime existingDeparture = existingTrip.getDepartureDateTime();
+                    LocalDateTime existingArrival = existingDeparture.plusMinutes(existingTrip.getRoute().getEstimatedDurationMinutes());
+
+                    return departureDateTime.isBefore(existingArrival) && estimatedArrivalDateTime.isAfter(existingDeparture);
+                });
     }
 
     @Transactional(readOnly = true)

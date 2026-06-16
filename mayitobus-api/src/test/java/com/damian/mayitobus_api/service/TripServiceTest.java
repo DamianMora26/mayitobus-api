@@ -17,6 +17,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,6 +55,7 @@ class TripServiceTest {
         when(routeRepository.findById(1L)).thenReturn(Optional.of(route));
         when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
         when(tripRepository.existsByBus_IdAndDepartureDateTime(1L, departure)).thenReturn(false);
+        when(tripRepository.findByBus_IdAndStatusOrderByDepartureDateTimeAsc(1L, "SCHEDULED")).thenReturn(List.of());
         when(tripRepository.save(any(Trip.class))).thenAnswer(invocation -> {
             Trip trip = invocation.getArgument(0);
             ReflectionTestUtils.setField(trip, "id", 5L);
@@ -82,6 +84,52 @@ class TripServiceTest {
                 .hasMessage("debe ser una fecha futura");
     }
 
+    @Test
+    void createTripRejectsBusScheduleOverlap() {
+        LocalDateTime now = LocalDateTime.of(2026, 6, 13, 7, 0);
+        LocalDateTime departure = LocalDateTime.of(2026, 6, 13, 10, 0);
+        Route newRoute = buildRoute(1L, true, 320);
+        Bus bus = buildBus(1L, "ACTIVE");
+        Trip existingTrip = buildTrip(2L, buildRoute(2L, true, 420), bus, LocalDateTime.of(2026, 6, 13, 8, 0), "SCHEDULED");
+        CreateTripRequest request = buildTripRequest(1L, 1L, departure);
+
+        when(timeService.now()).thenReturn(now);
+        when(routeRepository.findById(1L)).thenReturn(Optional.of(newRoute));
+        when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
+        when(tripRepository.existsByBus_IdAndDepartureDateTime(1L, departure)).thenReturn(false);
+        when(tripRepository.findByBus_IdAndStatusOrderByDepartureDateTimeAsc(1L, "SCHEDULED")).thenReturn(List.of(existingTrip));
+
+        assertThatThrownBy(() -> tripService.createTrip(request))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("El autobus ya tiene un viaje programado que se cruza con ese horario");
+    }
+
+    @Test
+    void createTripAllowsSameBusAfterExistingArrival() {
+        LocalDateTime now = LocalDateTime.of(2026, 6, 13, 7, 0);
+        LocalDateTime departure = LocalDateTime.of(2026, 6, 13, 15, 0);
+        Route newRoute = buildRoute(1L, true, 120);
+        Bus bus = buildBus(1L, "ACTIVE");
+        Trip existingTrip = buildTrip(2L, buildRoute(2L, true, 420), bus, LocalDateTime.of(2026, 6, 13, 8, 0), "SCHEDULED");
+        CreateTripRequest request = buildTripRequest(1L, 1L, departure);
+
+        when(timeService.now()).thenReturn(now);
+        when(routeRepository.findById(1L)).thenReturn(Optional.of(newRoute));
+        when(busRepository.findById(1L)).thenReturn(Optional.of(bus));
+        when(tripRepository.existsByBus_IdAndDepartureDateTime(1L, departure)).thenReturn(false);
+        when(tripRepository.findByBus_IdAndStatusOrderByDepartureDateTimeAsc(1L, "SCHEDULED")).thenReturn(List.of(existingTrip));
+        when(tripRepository.save(any(Trip.class))).thenAnswer(invocation -> {
+            Trip trip = invocation.getArgument(0);
+            ReflectionTestUtils.setField(trip, "id", 6L);
+            return trip;
+        });
+
+        TripResponse response = tripService.createTrip(request);
+
+        assertThat(response.getDepartureDateTime()).isEqualTo(departure);
+        assertThat(response.getEstimatedArrivalDateTime()).isEqualTo(LocalDateTime.of(2026, 6, 13, 17, 0));
+    }
+
     private CreateTripRequest buildTripRequest(Long routeId, Long busId, LocalDateTime departureDateTime) {
         CreateTripRequest request = new CreateTripRequest();
         ReflectionTestUtils.setField(request, "routeId", routeId);
@@ -108,5 +156,16 @@ class TripServiceTest {
         bus.setCapacity(42);
         bus.setStatus(status);
         return bus;
+    }
+
+    private Trip buildTrip(Long id, Route route, Bus bus, LocalDateTime departureDateTime, String status) {
+        Trip trip = new Trip();
+        ReflectionTestUtils.setField(trip, "id", id);
+        trip.setRoute(route);
+        trip.setBus(bus);
+        trip.setDepartureDateTime(departureDateTime);
+        trip.setStatus(status);
+        trip.setCreatedAt(departureDateTime.minusDays(1));
+        return trip;
     }
 }
