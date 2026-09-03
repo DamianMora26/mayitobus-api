@@ -26,7 +26,7 @@ public class ReportService {
     @Transactional(readOnly = true)
     public SalesReportResponse getSalesReport(LocalDate fromDate, LocalDate toDate) {
         if (fromDate.isAfter(toDate)) {
-            throw new IllegalArgumentException("La fecha inicial debe ser anterior o igual a la fecha final");
+            throw new com.damian.mayitobus_api.exception.BusinessException("La fecha inicial debe ser anterior o igual a la fecha final");
         }
 
         LocalDateTime start = fromDate.atStartOfDay();

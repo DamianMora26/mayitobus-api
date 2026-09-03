@@ -28,7 +28,7 @@ public class SeatService {
     @Transactional(readOnly = true)
     public TripSeatsResponse getSeatsByTrip(Long tripId) {
         Trip trip = tripRepository.findById(tripId)
-                .orElseThrow(() -> new IllegalArgumentException("Selecciona un viaje para ver sus asientos"));
+                .orElseThrow(() -> new com.damian.mayitobus_api.exception.BusinessException("Selecciona un viaje para ver sus asientos"));
 
         List<Ticket> soldTickets = ticketRepository.findByTrip_IdAndStatusOrderBySeatNumberAsc(tripId, "SOLD");
         Map<Integer, Ticket> ticketsBySeat = new HashMap<>();

@@ -7,16 +7,16 @@ Sistema web full stack para la operacion de una terminal de Autobuses Mayitos. E
 Frontend publico:
 
 ```text
-https://mayitobus-web.onrender.com
+https://tu-dominio-frontend.com
 ```
 
 API publica:
 
 ```text
-https://mayitobus-api.onrender.com
+https://tu-dominio-backend.com
 ```
 
-Nota: el plan gratuito de Render puede pausar la API por inactividad. La primera peticion despues de un tiempo sin uso puede tardar algunos segundos.
+Nota: Si utilizas planes gratuitos de hosting (como Render o similares), toma en cuenta que tu API podría pausarse por inactividad. La primera petición después de un tiempo sin uso puede tardar algunos segundos en responder.
 
 ## Capturas
 
@@ -58,7 +58,7 @@ Nota: el plan gratuito de Render puede pausar la API por inactividad. La primera
 - TanStack Query
 - Tailwind CSS
 - Docker
-- Render
+- Supabase
 
 ## Funcionalidades
 
@@ -82,7 +82,7 @@ Nota: el plan gratuito de Render puede pausar la API por inactividad. La primera
 - Boleto imprimible.
 - Reportes de ventas por rango de fechas con visualizacion diaria.
 - Mensajes de validacion claros para orientar al usuario durante la captura.
-- Despliegue con frontend, API y PostgreSQL en Render.
+- Despliegue listo para usar con frontend en plataformas estáticas, API con Docker y PostgreSQL en Supabase.
 
 ## Modelo de dominio
 
@@ -240,28 +240,28 @@ docker compose down -v
 
 ## Despliegue
 
-El proyecto esta preparado para desplegarse como tres servicios:
+El proyecto esta preparado para desplegarse utilizando:
 
-- `mayitobus-web`: Static Site en Render.
-- `mayitobus-api`: Web Service Docker en Render.
-- `mayitobus-db`: PostgreSQL administrado en Render.
+- `mayitobus-web`: Static Site (ej. Vercel, Netlify o Render).
+- `mayitobus-api`: Web Service Docker (ej. Render o Railway).
+- `mayitobus-db`: PostgreSQL administrado en Supabase.
 
 Variables principales para la API:
 
 ```text
-DB_URL=jdbc:postgresql://HOST:5432/mayitobus_db?sslmode=require
-DB_USERNAME=mayitobus_user
+DB_URL=jdbc:postgresql://<aws-0-region.pooler.supabase.com>:6543/postgres
+DB_USERNAME=postgres.<tu-project-ref>
 DB_PASSWORD=tu_password
 JWT_SECRET=una_clave_larga_y_segura
 JWT_EXPIRATION_MINUTES=120
 APP_TIME_ZONE=America/Hermosillo
-CORS_ALLOWED_ORIGINS=https://mayitobus-web.onrender.com
+CORS_ALLOWED_ORIGINS=https://tu-dominio-frontend.com
 ```
 
 Variable principal para el frontend:
 
 ```text
-VITE_API_URL=https://mayitobus-api.onrender.com
+VITE_API_URL=https://tu-dominio-backend.com
 ```
 
 ## Endpoints principales
@@ -313,4 +313,4 @@ npm run build
 
 ## Estado
 
-Proyecto de portafolio desplegado en Render. El flujo principal permite administrar catalogos, programar viajes, vender boletos con descuentos, controlar asientos, imprimir comprobantes, conservar historial operativo y consultar reportes.
+Proyecto de portafolio web. El flujo principal permite administrar catalogos, programar viajes, vender boletos con descuentos, controlar asientos, imprimir comprobantes, conservar historial operativo y consultar reportes.

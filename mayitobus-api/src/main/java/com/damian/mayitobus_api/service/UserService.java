@@ -31,11 +31,11 @@ public class UserService {
 
     public User createUser(CreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new IllegalArgumentException("Ya existe un usuario con ese correo");
+            throw new com.damian.mayitobus_api.exception.BusinessException("Ya existe un usuario con ese correo");
         }
 
         Role role = roleRepository.findByName(request.getRoleName())
-                .orElseThrow(() -> new IllegalArgumentException("Selecciona un rol valido para el usuario"));
+                .orElseThrow(() -> new com.damian.mayitobus_api.exception.BusinessException("Selecciona un rol valido para el usuario"));
 
         User user = new User();
         user.setFullName(request.getFullName());
@@ -58,7 +58,7 @@ public class UserService {
 
     public UserResponse updateActive(Long userId, Boolean active) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("No se encontro ese usuario. Actualiza la lista e intenta de nuevo"));
+                .orElseThrow(() -> new com.damian.mayitobus_api.exception.BusinessException("No se encontro ese usuario. Actualiza la lista e intenta de nuevo"));
 
         user.setActive(active);
 

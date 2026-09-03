@@ -101,7 +101,7 @@ public class JwtService {
             return objectMapper.readValue(payloadBytes, new TypeReference<>() {
             });
         } catch (Exception exception) {
-            throw new IllegalArgumentException("Tu sesion no es valida. Vuelve a iniciar sesion");
+            throw new com.damian.mayitobus_api.exception.BusinessException("Tu sesion no es valida. Vuelve a iniciar sesion");
         }
     }
 

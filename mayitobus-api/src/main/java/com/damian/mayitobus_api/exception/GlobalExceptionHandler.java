@@ -14,13 +14,24 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(BusinessException.class)
+    public org.springframework.http.ResponseEntity<Map<String, Object>> handleBusinessException(BusinessException exception) {
+        Map<String, Object> body = Map.of(
+                "timestamp", LocalDateTime.now(),
+                "status", exception.getStatus().value(),
+                "error", "Regla de negocio no cumplida",
+                "message", exception.getMessage()
+        );
+        return org.springframework.http.ResponseEntity.status(exception.getStatus()).body(body);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, Object> handleIllegalArgumentException(IllegalArgumentException exception) {
         return Map.of(
                 "timestamp", LocalDateTime.now(),
-                "status", HttpStatus.CONFLICT.value(),
-                "error", "No se pudo completar la accion",
+                "status", HttpStatus.BAD_REQUEST.value(),
+                "error", "Parámetro inválido",
                 "message", exception.getMessage()
         );
     }
