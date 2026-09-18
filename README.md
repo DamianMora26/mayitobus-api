@@ -95,15 +95,7 @@ El sistema separa conceptos que en una version anterior estaban mezclados:
 
 Para conservar historial operativo, el sistema usa cambios de estado en lugar de eliminacion fisica: usuarios, autobuses y rutas se desactivan; los viajes y boletos se cancelan o se consultan desde historial.
 
-## Credenciales demo
 
-```text
-Correo: admin@example.com
-Password: password123
-Rol: TERMINAL_MANAGER
-```
-
-Se recomienda usar estas credenciales solo para demostracion y cambiar los secretos en ambientes productivos.
 
 ## Configuracion local
 
